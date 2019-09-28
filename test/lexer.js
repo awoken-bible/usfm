@@ -45,6 +45,34 @@ describe("lexer", () => {
     }));
   });
 
+  it('Edge/Failure Cases', () => {
+    // empty string
+    expect(Array.from(lexer(""))).to.deep.equal([]);
+
+    // missing mandatory whitespace after close tag
+    expect(() => Array.from(lexer("\\f*\\v 1 hi"))).to.throw();
+    expect(      Array.from(lexer("\\f* \\v 1 hi"))).to.deep.equal([
+      { kind: 'f*' },
+      { kind: 'v', data: '1', text: 'hi' },
+    ]);
+
+    // missing data
+    expect(() => Array.from(lexer("\\c\n\n\\v 4"))).to.throw();
+
+    // bad data
+    expect(() => Array.from(lexer("\\c hello"))).to.throw();
+    expect(      Array.from(lexer("\\c 1"))).to.deep.equal([
+      { kind: 'c', data: '1' },
+    ]);
+
+    // missing mandatory whitespace after data
+    expect(() => Array.from(lexer("\\c 1\\v 3 hello"))).to.throw();
+    expect(      Array.from(lexer("\\c 1\n\\v 3 hello"))).to.deep.equal([
+      { kind: 'c', data: '1' },
+      { kind: 'v', data: '3', text: 'hello' },
+    ]);
+  });
+
   it('Footnotes', () => {
     text = '\\f + \\fk Issac:\\ft In Hebrew means "laughter"\\f*"';
     expect(Array.from(lexer(text))).to.deep.equal([
@@ -77,7 +105,6 @@ describe("lexer", () => {
             \\c 1
             \\p
             \\v 1 In the beginning, God created the heavens and the earth.\n`;
-
     expect(Array.from(lexer(text))).to.deep.equal([
       { kind: 'id',            data: 'GEN', text: 'World English Bible (WEB)' },
       { kind: 'ide',           data: 'UTF-8'},
@@ -91,6 +118,49 @@ describe("lexer", () => {
       { kind: 'c', data: '1' },
       { kind: 'p' },
       { kind: 'v', data: '1', text: 'In the beginning, God created the heavens and the earth.' },
+    ]);
+
+    text = `\\v 13 Yahweh God said to the woman, “What have you done?”
+            \\p The woman said, “The serpent deceived me, and I ate.”
+            \\p
+            \\v 14 Yahweh God said to the serpent,
+            \\q1 “Because you have done this,
+            \\q2 you are cursed above all livestock,
+            \\q2 and above every animal of the field.
+            \\q1 You shall go on your belly
+            \\q2 and you shall eat dust all the days of your life.
+            \\q1
+            \\v 15 I will put hostility between you and the woman,
+            \\q2 and between your offspring and her offspring.
+            \\q1 He will bruise your head,
+            \\q2 and you will bruise his heel.”
+            \\p
+            \\v 16 To the woman he said,
+            \\q1 “I will greatly multiply your pain in childbirth.
+            \\q2 You will bear children in pain.
+            \\q1 Your desire will be for your husband,
+            \\q2 and he will rule over you.”`;
+    expect(Array.from(lexer(text))).to.deep.equal([
+      { kind: 'v', data: '13', text: 'Yahweh God said to the woman, “What have you done?”' },
+      { kind: 'p',             text: 'The woman said, “The serpent deceived me, and I ate.”' },
+      { kind: 'p' },
+      { kind: 'v', data: '14', text: "Yahweh God said to the serpent," },
+      { kind: "q", level: 1,   text: "“Because you have done this," },
+      { kind: "q", level: 2,   text: "you are cursed above all livestock," },
+      { kind: "q", level: 2,   text: "and above every animal of the field." },
+      { kind: "q", level: 1,   text: "You shall go on your belly" },
+      { kind: "q", level: 2,   text: "and you shall eat dust all the days of your life." },
+      { kind: "q", level: 1 },
+      { kind: "v", data: '15', text: "I will put hostility between you and the woman," },
+      { kind: "q", level: 2,   text: "and between your offspring and her offspring." },
+      { kind: "q", level: 1,   text: "He will bruise your head," },
+      { kind: "q", level: 2,   text: "and you will bruise his heel.”" },
+      { kind: "p" },
+      { kind: "v", data: '16', text: "To the woman he said," },
+      { kind: "q", level: 1,   text: "“I will greatly multiply your pain in childbirth." },
+      { kind: "q", level: 2,   text: "You will bear children in pain." },
+      { kind: "q", level: 1,   text: "Your desire will be for your husband," },
+      { kind: "q", level: 2,   text: "and he will rule over you.”" },
     ]);
   });
 });
