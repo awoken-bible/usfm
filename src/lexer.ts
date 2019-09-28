@@ -1,11 +1,4 @@
-import { readFileSync } from 'fs';
-
-interface Marker {
-	kind   : string,
-	level? : number,
-	data   : string,
-	text   : string,
-};
+import { Marker, getMarkerMeta } from './marker';
 
 function isWhitespace(c : string){
 	return (c.charAt(0) == ' '  ||
@@ -16,13 +9,20 @@ function isWhitespace(c : string){
 }
 
 export function* lexer(text: string) : IterableIterator<Marker> {
-	let marker : Marker = { kind: '', level: undefined, data: '', text: '' };
+	const EMPTY_MARKER : Marker = {
+		kind: '',
+		level: undefined,
+		data: '',
+		text: ''
+	};
+
+	let marker = { ...EMPTY_MARKER };
 
 	function emit() : Marker{
 		marker.text = marker.text.trim();
 		let retval = marker;
 
-		marker = { kind: '', level: undefined, data: '', text: '' };
+		marker = { ...EMPTY_MARKER };
 
 		return retval;
 	}
@@ -32,12 +32,19 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		// Consume whitespace
 		while(isWhitespace(text.charAt(i))){ ++i; }
 
-		// Start marker
+		// Start marker with \ char
 		if(text.charAt(0) != '\\'){
 			throw new Error("Expected \\ at position " + i);
 		}
 
-		// parse kind (lower case sequence of a-z chars)
+		// Parse a '+', indicating a marker nested within the current context
+		// See: https://ubsicap.github.io/usfm/characters/nesting.html
+		if(text.charAt(i) == '+'){
+			marker.level = text.charCodeAt(i) - '0'.charCodeAt(0);
+			++i;
+		}
+
+		// parse kind (lower case sequence of a-z chars), eg 'id' in \id
 		while(text.charCodeAt(i) >= 'a'.charCodeAt(0) &&
 					text.charCodeAt(i) <= 'z'.charCodeAt(0)
 				 ){
@@ -59,9 +66,38 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 			continue;
 		}
 
+		if(i >= text.length-1){
+			yield emit();
+			break;
+		}
+		if(!isWhitespace(text.charAt(i))){
+			throw new Error("Expected mandatory whitespace after marker at position " + i);
+		}
+		// consume any extra whitespace
 		while(isWhitespace(text.charAt(i))){ ++i; }
 
-		console.log("******** PARSING TEXT");
+		// Parse data string
+		let meta = getMarkerMeta(marker.kind);
+		if(meta.data){
+			let match = text.substring(i).match(meta.data);
+			if(!match){
+				throw new Error("Expected data to follow marker '" + marker.kind +
+												"' at position " + i + ", got: " + text.substring(i, i+5) + "...");
+			}
+			marker.data = match[0];
+			i += marker.data.length;
+
+			if(i >= text.length-1){
+				yield emit();
+				break;
+			}
+			if(!isWhitespace(text.charAt(i))){
+				throw new Error("Expected mandatory whitespace after marker data at position " + i);
+			}
+			// consume any extra whitespace
+			while(isWhitespace(text.charAt(i))){ ++i; }
+		}
+
 		while(text.charAt(i) != '\\' && i < text.length){
 			marker.text += text.charAt(i);
 			++i;
@@ -70,14 +106,5 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		yield emit();
 	}
 }
-let data = readFileSync('./test.usfm').toString();
-//console.log(data);
 
-let gen = lexer(data);
-console.dir(gen.next());
-console.dir(gen.next());
-console.dir(gen.next());
-console.dir(gen.next());
-console.dir(gen.next());
-console.dir(gen.next());
-console.dir(gen.next());
+export default(lexer);
