@@ -1,0 +1,14 @@
+# Ignore Emacs Backup Files
+*#*#
+*.#*
+*~
+
+# Node generated
+**/node_modules/
+**/package-lock.json
+
+# Generated output
+/dist
+/docs
+coverage/
+.nyc_output/

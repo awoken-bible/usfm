@@ -1,0 +1,65 @@
+{
+  "name": "awoken-bible-usfm",
+  "version": "0.0.1",
+  "description": "Bible USFM parser",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "mocha test/ --reporter spec",
+    "cover": "./node_modules/.bin/nyc ./node_modules/.bin/mocha && ./node_modules/.bin/nyc report --reporter lcov --reporter html",
+    "build": "tsc",
+    "docs": "./node_modules/.bin/typedoc --out docs",
+		"prepare": "git clean -Xf && npm run build"
+  },
+  "dependencies": {
+		"awoken-bible-reference": "1.4.0"
+  },
+  "devDependencies": {
+    "@types/parsimmon": "^1.10.0",
+    "chai": "^4.2.0",
+    "rewire": "^4.0.1",
+    "coveralls": "^3.0.6",
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
+    "source-map-support": "^0.5.13",
+    "ts-node": "^8.3.0",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.6.2"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jnterry/awoken-bible-usfm.git"
+  },
+  "keywords": [
+    "bible",
+    "usfm",
+    "parser"
+  ],
+  "author": "Jamie Terry",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jnterry/awoken-bible-usfm/issues"
+  },
+  "homepage": "https://github.com/jnterry/awoken-bible-usfm#readme",
+  "files": [
+    "dist/**/*"
+  ],
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "src/**/*"
+    ],
+    "exclude": [
+      "**/*/*.d.ts"
+    ],
+    "all": true,
+    "require": [
+      "ts-node/register",
+      "source-map-support/register"
+    ]
+  }
+}
