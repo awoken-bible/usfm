@@ -11,15 +11,14 @@ function isWhitespace(c : string){
 export function* lexer(text: string) : IterableIterator<Marker> {
 	const EMPTY_MARKER : Marker = {
 		kind: '',
-		level: undefined,
-		data: '',
-		text: ''
 	};
 
 	let marker = { ...EMPTY_MARKER };
 
 	function emit() : Marker{
-		marker.text = marker.text.trim();
+		if(marker.text){
+			marker.text = marker.text.trim();
+		}
 		let retval = marker;
 
 		marker = { ...EMPTY_MARKER };
@@ -28,13 +27,12 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 	}
 
 	for(let i = 1; i < text.length; ++i){
-
 		// Consume whitespace
 		while(isWhitespace(text.charAt(i))){ ++i; }
 
 		// Start marker with \ char
 		if(text.charAt(0) != '\\'){
-			throw new Error("Expected \\ at position " + i);
+			throw new Error("Expected \\ at position " + i + ", got: '" + text.substring(i, i+5) + "..." + "'");
 		}
 
 		// Parse a '+', indicating a marker nested within the current context
@@ -58,12 +56,12 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 			++i;
 		}
 
+		let is_closing = false;
 		if(text.charAt(i) == '*'){
 			// Then its a closing marker
+			is_closing = true;
 			marker.kind += '*';
 			++i;
-			yield emit();
-			continue;
 		}
 
 		if(i >= text.length-1){
@@ -78,7 +76,8 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 
 		// Parse data string
 		let meta = getMarkerMeta(marker.kind);
-		if(meta.data){
+
+		if(meta.data && !is_closing){
 			let match = text.substring(i).match(meta.data);
 			if(!match){
 				throw new Error("Expected data to follow marker '" + marker.kind +
@@ -98,9 +97,12 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 			while(isWhitespace(text.charAt(i))){ ++i; }
 		}
 
-		while(text.charAt(i) != '\\' && i < text.length){
-			marker.text += text.charAt(i);
-			++i;
+		if(text.charAt(i) != '\\'){
+			marker.text = "";
+			while(text.charAt(i) != '\\' && i < text.length){
+				marker.text += text.charAt(i);
+				++i;
+			}
 		}
 
 		yield emit();

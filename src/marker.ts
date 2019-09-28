@@ -30,12 +30,12 @@ export interface Marker {
 	 * Value of data field following the marker, eg "\c 1" represents chapter
 	 * 1, and thus data is set to "1"
 	 */
-	data   : string,
+	data?   : string,
 
 	/**
 	 * Free text content following this marker, up until the next marker is found
 	 */
-	text   : string,
+	text?   : string,
 };
 
 export enum MarkerType {
@@ -92,8 +92,21 @@ const _metaData : {
 	'sts' : _markerDataInt,
 
 	// you MUST add the leading ^ to ensure lexer works correctly!
+
+	// id -> followed by book id, eg, GEN
 	'id'  : { data: /^[A-Za-z1-9]{3}/  },
+
+	// encoding, eg "UTF-16", "Custom (FONT.TTF)"
 	'ide' : { data: /^[A-Za-z1-9-]+|Custom \(\W+\)/ },
+
+	// footnote, followed by one of:
+	// + (footnote number is generated)
+	// - (footnote is not used)
+	// . (a custom character used to reference the footnote)
+	'f'   : { data: /^[\+\-a-zA-Z0-9]/ },
+
+	// footnote chapter/verse reference, eg, 12:3
+	'fr' : { data: /^\d+[:\.v]\d+/ },
 };
 
 
