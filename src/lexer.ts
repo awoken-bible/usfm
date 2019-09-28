@@ -1,4 +1,4 @@
-import { Marker, getMarkerMeta } from './marker';
+import { Marker, getMarkerDataRegexp } from './marker';
 
 function isWhitespace(c : string){
 	return (c.charAt(0) == ' '  ||
@@ -56,10 +56,8 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 			++i;
 		}
 
-		let is_closing = false;
 		if(text.charAt(i) == '*'){
 			// Then its a closing marker
-			is_closing = true;
 			marker.kind += '*';
 			++i;
 		}
@@ -75,10 +73,9 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		while(isWhitespace(text.charAt(i))){ ++i; }
 
 		// Parse data string
-		let meta = getMarkerMeta(marker.kind);
-
-		if(meta.data && !is_closing){
-			let match = text.substring(i).match(meta.data);
+		let data_regexp = getMarkerDataRegexp(marker.kind);
+		if(data_regexp){
+			let match = text.substring(i).match(data_regexp);
 			if(!match){
 				throw new Error("Expected data to follow marker '" + marker.kind +
 												"' at position " + i + ", got: " + text.substring(i, i+5) + "...");

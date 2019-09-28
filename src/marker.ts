@@ -65,59 +65,38 @@ export enum MarkerType {
 	 */
 };
 
-export interface MarkerMeta {
-	/**
-	 * RegExp used to match the "data" field following the marker
-	 * If set to undefined, then the marker has no data, and instead
-	 * all following content is part of the "text" field
-	 *
-	 * For example:
-	 * - \c requires a integer to denote the chapter number, regex: /\d+/
-	 * - \id requires a 3 char book id, regex: /[A-Za-z1-9]{3}/
-	 */
-	data? : RegExp,
-};
-
-const _defaultMetaData : MarkerMeta = {
-	data: undefined,
-};
-
-const _markerDataInt : MarkerMeta = { data: /^[0-9]+/ };
-
-const _metaData : {
-	[ index: string ] : MarkerMeta;
+const _regexpInt : RegExp = /^[0-9]+/;
+const _markerDataRegexp : {
+	[ index: string ] : RegExp;
 } = {
-	'c'   : _markerDataInt,
-	'v'   : _markerDataInt,
-	'sts' : _markerDataInt,
+	'c'   : _regexpInt,
+	'v'   : _regexpInt,
+	'sts' : _regexpInt,
 
-	// you MUST add the leading ^ to ensure lexer works correctly!
+	// you MUST include the leading ^ to ensure lexer works correctly!
 
 	// id -> followed by book id, eg, GEN
-	'id'  : { data: /^[A-Za-z1-9]{3}/  },
+	'id'  : /^[A-Za-z1-9]{3}/,
 
 	// encoding, eg "UTF-16", "Custom (FONT.TTF)"
-	'ide' : { data: /^[A-Za-z1-9-]+|Custom \(\W+\)/ },
+	'ide' : /^[A-Za-z1-9-]+|Custom \(\W+\)/,
 
 	// footnote, followed by one of:
 	// + (footnote number is generated)
 	// - (footnote is not used)
 	// . (a custom character used to reference the footnote)
-	'f'   : { data: /^[\+\-a-zA-Z0-9]/ },
+	'f'   : /^[\+\-a-zA-Z0-9]/,
 
 	// footnote chapter/verse reference, eg, 12:3
-	'fr' : { data: /^\d+[:\.v]\d+/ },
+	'fr'  : /^\d+[:\.v]\d+/,
 };
 
+/**
+ * Retrieves a regex representing the data that should follow a particular marker
+ */
+export function getMarkerDataRegexp(kind : string) : RegExp | undefined {
+	// Never get data following a closing tag
+	if(kind.endsWith('*')){ return undefined; }
 
-export function getMarkerMeta(kind : string) : MarkerMeta {
-	if(kind.endsWith('*')){
-		kind = kind.substring(0, -1);
-	}
-
-	if(_metaData[kind]){
-		return _metaData[kind];
-	}
-
-	return _defaultMetaData;
+	return _markerDataRegexp[kind];
 }
