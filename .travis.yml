@@ -5,6 +5,9 @@ node_js:
   - 10.4
   - lts/*
 
+before_install:
+  - sudo apt-get install -y wget unzip
+
 install:
   - npm install
   - npm run build

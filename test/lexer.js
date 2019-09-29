@@ -49,12 +49,13 @@ describe("lexer", () => {
     // empty string
     expect(Array.from(lexer(""))).to.deep.equal([]);
 
-    // missing mandatory whitespace after close tag
-    expect(() => Array.from(lexer("\\f*\\v 1 hi"))).to.throw();
-    expect(      Array.from(lexer("\\f* \\v 1 hi"))).to.deep.equal([
+    // don't need whitespace after close tag
+    let result = [
       { kind: 'f*' },
       { kind: 'v', data: '1', text: 'hi' },
-    ]);
+    ];
+    expect(Array.from(lexer("\\f*\\v 1 hi" ))).to.deep.equal(result);
+    expect(Array.from(lexer("\\f* \\v 1 hi"))).to.deep.equal(result);
 
     // missing data
     expect(() => Array.from(lexer("\\c\n\n\\v 4"))).to.throw();
@@ -71,10 +72,15 @@ describe("lexer", () => {
       { kind: 'c', data: '1' },
       { kind: 'v', data: '3', text: 'hello' },
     ]);
+
+    // verse marker can have range as data value
+    expect(Array.from(lexer("\\v 10-11 testing"))).to.deep.equal([
+      { kind: 'v', data: '10-11', text: "testing" },
+    ]);
   });
 
   it('Footnotes', () => {
-    text = '\\f + \\fk Issac:\\ft In Hebrew means "laughter"\\f*"';
+    text = '\\f + \\fk Issac:\\ft In Hebrew means "laughter"\\f*';
     expect(Array.from(lexer(text))).to.deep.equal([
       { kind: 'f', data: '+' },
       { kind: 'fk', text: 'Issac:' },
@@ -161,6 +167,27 @@ describe("lexer", () => {
       { kind: "q", level: 2,   text: "You will bear children in pain." },
       { kind: "q", level: 1,   text: "Your desire will be for your husband," },
       { kind: "q", level: 2,   text: "and he will rule over you.”" },
+    ]);
+
+    // Extract from Sirach (from Apocrypha)
+    // Contains various complex data strings with ranges that have tripped up lexer in past
+    text = `\\v 14 Good things and bad, life and death,
+            \\q2 poverty and riches, are from the Lord.
+            \\v 15-16  \\f + \\fr 11:15-16  \\ft Verses 15 and 16 are omitted by the best authorities. \\f*
+            \\q1
+            \\v 17 The Lord’s gift remains with the godly.
+            \\q2 His good pleasure will prosper forever.`;
+    expect(Array.from(lexer(text))).to.deep.equal([
+      { kind: 'v',   data: '14', text: 'Good things and bad, life and death,' },
+      { kind: 'q',   level: 2,   text: 'poverty and riches, are from the Lord.' },
+      { kind: 'v',   data: '15-16' },
+      { kind: 'f',   data: '+' },
+      { kind: 'fr',  data: '11:15-16' },
+      { kind: 'ft',              text: 'Verses 15 and 16 are omitted by the best authorities.' },
+      { kind: 'f*' },
+      { kind: 'q', level: 1 },
+      { kind: 'v', data: '17',   text: 'The Lord’s gift remains with the godly.' },
+      { kind: 'q', level: 2,     text: 'His good pleasure will prosper forever.' },
     ]);
   });
 });

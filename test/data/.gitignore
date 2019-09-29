@@ -1,0 +1,5 @@
+# Files in this directory will be auto-downloaded by the test code,
+# so we ignore all of them (except this gitignore iteself - so the
+# directory exists)
+**/*
+!.gitignore

@@ -60,14 +60,14 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 			// Then its a closing marker
 			marker.kind += '*';
 			++i;
+		} else {
+			if(!isWhitespace(text.charAt(i))){
+				throw new Error("Expected mandatory whitespace after marker at position " + i);
+			}
 		}
-
 		if(i >= text.length-1){
 			yield emit();
 			break;
-		}
-		if(!isWhitespace(text.charAt(i))){
-			throw new Error("Expected mandatory whitespace after marker at position " + i);
 		}
 		// consume any extra whitespace
 		while(isWhitespace(text.charAt(i))){ ++i; }

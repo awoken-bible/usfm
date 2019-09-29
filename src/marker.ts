@@ -70,8 +70,15 @@ const _markerDataRegexp : {
 	[ index: string ] : RegExp;
 } = {
 	'c'   : _regexpInt,
-	'v'   : _regexpInt,
 	'sts' : _regexpInt,
+
+	// Usually just a single int, however due to inconsistant versifications it
+	// can occasionally be a range (eg: 28-29) where two verses are combined into
+	// a single flowing sentence
+	'v'   : /^[0-9]+(-[0-9]+)?/,
+
+	// footnote chapter/verse reference, eg, 12:3, or 12:3-4
+	'fr'  : /^\d+[:\.v]\d+(-[0-9]+)?/,
 
 	// you MUST include the leading ^ to ensure lexer works correctly!
 
@@ -87,8 +94,7 @@ const _markerDataRegexp : {
 	// . (a custom character used to reference the footnote)
 	'f'   : /^[\+\-a-zA-Z0-9]/,
 
-	// footnote chapter/verse reference, eg, 12:3
-	'fr'  : /^\d+[:\.v]\d+/,
+
 };
 
 /**
