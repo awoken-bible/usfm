@@ -1,7 +1,6 @@
 "use strict";
 
 const chai             = require('chai');
-const download         = require('download');
 const fs               = require('fs');
 const { execFileSync } = require('child_process');
 
