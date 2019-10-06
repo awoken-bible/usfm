@@ -8,7 +8,7 @@ const { parse } = require('../src/parser.ts');
 let text;
 
 describe('Parser', () => {
-  it('Headers', () => {
+  it('Book Headers', () => {
     let text = `\\id GEN Test Bible
                 \\ide UTF-8
                 \\toc1 Test Book
@@ -28,4 +28,43 @@ describe('Parser', () => {
       chapters    : [],
     });
   });
+
+  it('Chapter Headers', () => {
+    let text = `\\id GEN Test Bible2
+                \\cl Book Chapter Label
+                \\c 1
+                \\ca 2 \\ca*
+                \\cp A
+                \\c 2
+                \\cl Chapter Label
+                \\cd Here is some infomative text being used
+to describe the contents of this chapter
+               `;
+
+    expect(parse(text)).to.deep.equal({
+      success       : true,
+      errors        : [],
+      book_id       : 'GEN',
+      id_text       : 'Test Bible2',
+      toc           : {},
+      toca          : {},
+      major_title   : {},
+      chapter_label : 'Book Chapter Label',
+      chapters      : [
+        { success: true,
+          errors      : [],
+          chapter     : 1,
+          chapter_alt : 2,
+          drop_cap    : 'A',
+        },
+        { success: true,
+          errors      : [],
+          chapter     : 2,
+          label       : 'Chapter Label',
+          description : 'Here is some infomative text being used\nto describe the contents of this chapter',
+        },
+      ],
+    });
+  });
+
 });

@@ -152,9 +152,10 @@ export function parse(text: string) : ParseResultBook {
 	}
 
 	let parsing_headers = true;
-	let marker_yield_val = it.next();
+	let marker_yield_val : IteratorResult<Marker>;
 	let marker : Marker = { kind: '' };
 	while(parsing_headers){
+		marker_yield_val = it.next();
 		if(marker_yield_val.done){ return result; }
 		marker = marker_yield_val.value;
 
@@ -187,6 +188,7 @@ export function parse(text: string) : ParseResultBook {
 				break;
 			case 'c':
 				parsing_headers = false;
+				break;
 			default:
 				pushError(marker, "Unexpected marker in book header section");
 				return { success: false,
@@ -194,16 +196,16 @@ export function parse(text: string) : ParseResultBook {
 							 };
 
 		} // end of switch marker.kind
-
-		marker_yield_val = it.next();
 	}
 
 	let chpt_parser = chapterParser(marker);
 	let chpt : IteratorResult<ParseResultChapter, never>;
+
 	while(true){
-		marker_yield_val = it.next();
-		let marker : Marker = marker_yield_val.value;
 		chpt = chpt_parser.next(marker);
+
+		marker_yield_val = it.next();
+		marker = marker_yield_val.value;
 
 		if(marker_yield_val.done || marker.kind === 'c'){
 			result.chapters.push(chpt.value);
@@ -235,7 +237,7 @@ function* chapterParser(marker : Marker) : Generator<ParseResultChapter, never, 
 	marker = (yield result)! as Marker;
 
 	let parsing_headers = true;
-	while(parsing_headers){
+	while(parsing_headers && marker){
 		switch(marker.kind){
 			case 'ca':
 				result.chapter_alt = marker.text ? parseInt(marker.text) : undefined;
@@ -260,12 +262,15 @@ function* chapterParser(marker : Marker) : Generator<ParseResultChapter, never, 
 
 	// now parsing chapter body
 	let verse = 0;
-	while(true){
+	while(marker && marker.kind !== 'c'){
 		// :TODO: impl
 		yield result;
 	}
-}
 
+	// Prevent ever returning (calling function is responsible
+	// for no longer calling next() on this generator)
+	while(true){ yield result; }
+}
 
 function _assignTocValue(toc    : TableOfContentsEntry,
 												 marker : Marker,
