@@ -14,20 +14,6 @@ interface TableOfContentsEntry {
 
 
 /**
- * Represents a single node of the USFM abstract syntax tree
- */
-type UsfmNode = {
-	kind: string,
-
-	/**
-	 * The verse number containing this text
-	 * Will be set to zero if this node represents content outside
-	 * of any verse (predominantly section headings)
-	 */
-	verse: number,
-};
-
-/**
  * Represents set of data for markers which can be used in multiple
  * levels, eg, \mt1, \mt2, etc
  */
@@ -41,6 +27,55 @@ type LeveledData<T> = {
 type ParserError = {
 	message : string,
 	marker  : Marker,
+};
+
+interface StyleBlockBase {
+	/**
+	 * Minimum extent of the styling as expressed in "gap index" (gap 0 is before
+	 * first character, gap 1 is after first character, thus a StyleBlock from 0
+	 * to 1 applies to just the first character)
+	 */
+	min : number;
+
+	/*
+	 * Maximum extent of the styling as expressed in "gap index"
+	 */
+	max : number;
+};
+
+/**
+ * Represents a region of text making up a single verse
+ */
+interface StyleBlockVerse extends StyleBlockBase{
+	kind : "v";
+
+	data : {
+		verse : number,
+	};
+};
+
+/**
+ * Represents a region of text making up an auto-line-wrapping paragraph
+ * of flowing text which may span multiple verses
+ */
+interface StyleBlockParagraph extends StyleBlockBase{
+	kind : "p";
+};
+
+type StyleBlock = (StyleBlockVerse |
+									 StyleBlockParagraph
+									);
+
+interface ParseResultBody {
+	/**
+	 * The full text of the parsed chapter without any styling, line breaks, etc
+	 */
+	text : string;
+
+	/**
+	 * Regions of styling for `text`
+	 */
+	styling : StyleBlock[],
 };
 
 interface ParseResultChapterSuccess {
@@ -71,6 +106,11 @@ interface ParseResultChapterSuccess {
 	 * Extra text added by translators before main verse content
 	 */
 	description?: string;
+
+	/**
+	 * Content of this chapter
+	 */
+	body : ParseResultBody;
 };
 
 
@@ -136,7 +176,7 @@ type ParseResultBook = {
 export function parse(text: string) : ParseResultBook {
 	let headers = [];
 
-	let it : IterableIterator<Marker> = lexer(text);
+	let lex_iter : IterableIterator<Marker> = lexer(text);
 
 	let result : ParseResultBookSuccess = {
 		success     : true,
@@ -155,7 +195,7 @@ export function parse(text: string) : ParseResultBook {
 	let marker_yield_val : IteratorResult<Marker>;
 	let marker : Marker = { kind: '' };
 	while(parsing_headers){
-		marker_yield_val = it.next();
+		marker_yield_val = lex_iter.next();
 		if(marker_yield_val.done){ return result; }
 		marker = marker_yield_val.value;
 
@@ -198,46 +238,56 @@ export function parse(text: string) : ParseResultBook {
 		} // end of switch marker.kind
 	}
 
-	let chpt_parser = chapterParser(marker);
-	let chpt : IteratorResult<ParseResultChapter, never>;
-
-	while(true){
-		chpt = chpt_parser.next(marker);
-
-		marker_yield_val = it.next();
-		marker = marker_yield_val.value;
-
-		if(marker_yield_val.done || marker.kind === 'c'){
-			result.chapters.push(chpt.value);
-			chpt_parser = chapterParser(marker);
-			if(marker_yield_val.done){ break; }
+	//////////////////////////////
+	// Read the remaining markers from lexer, splitting them into
+	// an array of arrays, where each sub array is all the markers
+	// for a single chapter
+	let cur             : Marker[]   = [marker];
+	let chapter_markers : Marker[][] = [cur];
+	for(let m of lex_iter){
+		if(m.kind === 'c'){
+			cur = [m];
+			chapter_markers.push(cur);
+		} else {
+			cur.push(m);
 		}
 	}
 
+	//////////////////////////////
+	// Actually parse the chapter's
+	result.chapters = chapter_markers.map(chapterParser);
 
 	return result;
 }
 
-function* chapterParser(marker : Marker) : Generator<ParseResultChapter, never, Marker> {
+function chapterParser(markers : Marker[]) : ParseResultChapter {
 
-	if(marker.kind !== 'c'){
-		throw new Error("First marker in chapterParser must be of kind \c");
+	if(markers[0].kind !== 'c'){
+		throw new Error("First marker in chapterParser must be of kind \\c");
 	}
 
 	let result : ParseResultChapterSuccess = {
 		success : true,
 		errors  : [],
-		chapter : parseInt(marker.data!),
+		chapter : parseInt(markers[0].data!),
+		body    : {
+			text: '',
+			styling: [],
+		},
 	};
+	markers.shift(); // remove the \c marker
 
 	function pushError(marker: Marker, message: string){
 		result.errors.push({ marker, message });
 	}
 
-	marker = (yield result)! as Marker;
-
-	let parsing_headers = true;
-	while(parsing_headers && marker){
+	let marker : Marker | undefined;
+	let m_idx = 0;
+	for(let parsing_headers = true;
+			m_idx < markers.length && parsing_headers;
+			++m_idx
+		 ){
+		let marker = markers[m_idx];
 		switch(marker.kind){
 			case 'ca':
 				result.chapter_alt = marker.text ? parseInt(marker.text) : undefined;
@@ -257,20 +307,78 @@ function* chapterParser(marker : Marker) : Generator<ParseResultChapter, never, 
 				parsing_headers = false;
 				break;
 		} // end of switch marker.kind
-		marker = (yield result)! as Marker;
 	}
 
-	// now parsing chapter body
-	let verse = 0;
-	while(marker && marker.kind !== 'c'){
-		// :TODO: impl
-		yield result;
-	}
+	result.body = bodyParser(markers.slice(m_idx-1), pushError);
 
-	// Prevent ever returning (calling function is responsible
-	// for no longer calling next() on this generator)
-	while(true){ yield result; }
+	return result;
 }
+
+function bodyParser(markers : Marker[],
+										pushError : (m: Marker, e: string) => void
+									 ) : ParseResultBody {
+
+	let result : ParseResultBody = {
+		text    : '',
+		styling : [],
+	};
+
+	let cur_open : { [index: string] : StyleBlock } = {};
+
+	let marker : Marker | undefined;
+	while(marker = markers.shift()){
+		let min = result.text.length;
+		switch(marker.kind){
+			case 'p':
+				if(cur_open['p']){
+					cur_open['p'].max = min;
+					result.styling.push(cur_open['p']);
+				}
+				cur_open['p'] = {
+					kind: 'p', min: min, max: min,
+				};
+				break;
+			case 'v':
+				result.text += marker.text;
+				if(cur_open['v']){
+					cur_open['v'].max = min;
+					result.styling.push(cur_open['v']);
+				}
+				if(marker.data === undefined){
+					pushError(marker, "Expected verse marker to have verse number as data");
+				} else if (!marker.data.match(/\d+/)) {
+					pushError(marker, "Expected verse marker's data to be integer");
+				} else {
+					cur_open['v'] = {
+						kind: 'v', min: min, max: min,
+						data: { verse: parseInt(marker.data) },
+					};
+				}
+				break;
+			default:
+				console.log("WARNING - skipping unknown marker: " + marker.kind);
+				break;
+		}
+		let max = result.text.length;
+	}
+
+	// Close all outstanding blocks implicity at end of chapter
+	let max = result.text.length;
+	for(let k of Object.keys(cur_open)){
+		if(cur_open[k] == null){ continue; }
+		cur_open[k].max = max;
+		result.styling.push(cur_open[k]);
+	}
+
+	// Sort blocks
+	result.styling.sort((a,b) => {
+		if(a.min == b.min){ return b.max - a.max; }
+		return a.min - b.min;
+	});
+
+	return result;
+}
+
 
 function _assignTocValue(toc    : TableOfContentsEntry,
 												 marker : Marker,
