@@ -48,9 +48,16 @@ interface StyleBlockBase {
  * for example paragraphs
  */
 interface StyleBlockNoData extends StyleBlockBase{
-	kind : "p" |
-		     "qa" | "qr" | "qc" | "qd" | "b" // poetic markup
-	;
+	kind : (
+		// paragraphs: https://ubsicap.github.io/usfm/paragraphs/
+	  "p" | "m" | "po" | "pr" | "cls" | "pi" | "mi" | "nb" | "pc" | "ph" |
+		// embedded paragrahs: https://ubsicap.github.io/usfm/paragraphs/
+	  "pmo" | "pm" | "pmc" | "pmr" |
+    // poetry: https://ubsicap.github.io/usfm/poetry/
+	  "qa" | "qr" | "qc" | "qd" |
+	  // misc
+	  "b" // blank line (between paragraphs or poetry)
+	);
 };
 
 /**
@@ -64,8 +71,8 @@ interface StyleBlockVerse extends StyleBlockBase{
 	};
 };
 
-interface StyleBlockPoetry extends StyleBlockBase {
-	kind : "q" | "qm";
+interface StyleBlockIndented extends StyleBlockBase {
+	kind : "q" | "qm" | "pi" | "ph";
 
 	data : {
 		indent : number,
@@ -74,7 +81,7 @@ interface StyleBlockPoetry extends StyleBlockBase {
 
 type StyleBlock = (StyleBlockNoData    |
 									 StyleBlockVerse     |
-									 StyleBlockPoetry
+									 StyleBlockIndented
 									);
 
 interface ParseResultBody {
@@ -357,15 +364,39 @@ function bodyParser(markers : Marker[],
 
 		switch(marker.kind){
 				////////////////////////////////////////////////////////////////////////
-			case 'p':
+				// PARAGRAPHS
+			case 'p'  : // normal paragraph
+			case 'm'  : // margin paragraph (no first line indent)
+			case 'po' : // paragraph to open  epistle/letter
+			case 'cls': // paragraph to close epistle/letter
+			case 'pr' : // right aligned paragraph
+			case 'pc' : // center aligned paragraph
+			case 'pmo': // embedded text opening
+			case 'pm' : // embedded text paragraph
+			case 'pmc': // embedded text closing
+			case 'pmr': // embedded text refrain
+			case 'mi' : // indented flush left (IE: justified text) paragraph
+			case 'nb' : // no break paragraph, use to continue previous (eg, over chapter boundary)
 				closeTagType('p', t_idx);
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
+				result.text += marker.text || "";
 				cur_open['p'] = {
-					kind: 'p', min: t_idx, max : t_idx,
+					kind: marker.kind, min: t_idx, max : t_idx,
+				};
+				break;
+
+			case 'pi': // indented paragraph
+			case 'ph': // indented with hanging indent, depreacted, use \li#
+				closeTagType('p', t_idx);
+				closeTagType('q', t_idx); // poetry doesn't span paragraphs
+				result.text += marker.text || "";
+				cur_open['p'] = {
+					kind: marker.kind, min: t_idx, max : t_idx, data: { indent: marker.level || 1 }
 				};
 				break;
 
 				////////////////////////////////////////////////////////////////////////
+				// VERSES
 			case 'v':
 				result.text += marker.text || "";
 				closeTagType('v', t_idx);
@@ -382,6 +413,7 @@ function bodyParser(markers : Marker[],
 				break;
 
 				////////////////////////////////////////////////////////////////////////
+				// POETRY
 			case 'q':  // poetry, indent given by marker.level
 			case 'qm': // embedded poetry, indent given by marker.level
 				result.text += marker.text || "";
@@ -392,27 +424,27 @@ function bodyParser(markers : Marker[],
 					data: { indent: marker.level || 1 }
 				};
 				break;
-
 			case 'qr': // poetry, right aligned
 			case 'qc': // poetry, center aligned
 			case 'qa': // poetry acrostic heading
 			case 'qd': // poetry closing note (eg, "for the director of music" at end of psalms)
-			case 'b':  // blank line between poetry stanzas, or between poetry and prose text
-				if(cur_open['q']){
-					cur_open['q'].max = t_idx;
-					result.styling.push(cur_open['q']);
-				}
-				if(marker.kind === 'b'){
-					if(marker.text !== undefined || marker.data !== undefined){
-						pushError(marker, "\\b marker (blank line) must not have associated text or data content - content will be skipped");
-					}
-				} else {
-					result.text += marker.text || "";
-				}
+				closeTagType('q', t_idx);
+				result.text += marker.text || "";
 				cur_open['q'] = {
 					min: t_idx, max: t_idx,
 					kind: marker.kind,
 				};
+				break;
+
+				////////////////////////////////////////////////////////////////////////
+				// MISC
+			case 'b':
+				closeTagType('p', t_idx);
+				closeTagType('q', t_idx);
+				if(marker.text !== undefined || marker.data !== undefined){
+					pushError(marker, "\\b marker (blank line) must not have associated text or data content - content will be skipped");
+				}
+				result.styling.push({ kind: 'p', min: t_idx, max: t_idx });
 				break;
 
 				////////////////////////////////////////////////////////////////////////

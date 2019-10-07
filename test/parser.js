@@ -78,14 +78,16 @@ to describe the contents of this chapter
   describe('Body', () => {
     let text;
     it('Following chapter headers', () => {
-
+      // Test to ensure that body can be picked out of chapters
       let text = `\\id GEN Test Bible3
                   \\c 1
                   \\p
                   \\v 1 Verse one text content is here.
                   \\v 2 Followed closely by verse 2.
                   \\p
-                  \\v 3 We can even start new paragraphs.`;
+                  \\v 3 We can even start new paragraphs.
+                  \\c 2
+                  \\v 1 Next chapter`;
 
       expect(parse(text)).to.deep.equal({
         success: true,
@@ -102,7 +104,7 @@ to describe the contents of this chapter
             body   : {
               text: 'Verse one text content is here.Followed closely by verse 2.We can even start new paragraphs.',
               styling: [
-                 { min:  0, max: 59, kind: 'p' },
+                { min:  0, max: 59, kind: 'p' },
                 { min:  0, max: 31, kind: 'v', data: { verse: 1 } },
                 { min: 31, max: 59, kind: 'v', data: { verse: 2 } },
                 { min: 59, max: 92, kind: 'p' },
@@ -110,12 +112,64 @@ to describe the contents of this chapter
               ],
             }
           },
+          { success: true,
+            errors : [],
+            chapter: 2,
+            body   : {
+              text: 'Next chapter',
+              styling: [
+                { min:  0, max: 12, kind: 'v', data: { verse: 1 } },
+              ],
+            }
+          },
         ]
       });
     });
 
+    it('Prose', () => {
+      // Various types of paragraph, all should close all others,
+      // and not affect flow of verses
+      text = `\\p
+              \\v 1 Hello World.
+              \\pc Centered Text.
+              \\pr Right Text.
+              \\pmo
+              \\v 2 Embedded opening.
+              \\pm  Embedded content.
+              \\pmc Embedded closing.
+              \\v 3
+              \\po  Letter opening.
+              \\m   No indent.
+              \\cls Letter closing.`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'Hello World.Centered Text.Right Text.Embedded opening.Embedded content.Embedded closing.Letter opening.No indent.Letter closing.',
+        styling: sortStyleBlocks([
+          { kind: 'v', min:  0, max:  37, data: { verse: 1 } },
+          { kind: 'v', min: 37, max:  88, data: { verse: 2 } },
+          { kind: 'v', min: 88, max: 128, data: { verse: 3 } },
+
+          { kind: 'p',   min:   0, max:  12 },
+          { kind: 'pc',  min:  12, max:  26 },
+          { kind: 'pr',  min:  26, max:  37 },
+
+          { kind: 'pmo', min:  37, max:  54 },
+          { kind: 'pm',  min:  54, max:  71 },
+          { kind: 'pmc', min:  71, max:  88 },
+
+          { kind: 'po',  min:  88, max: 103 },
+          { kind: 'm',   min: 103, max: 113 },
+          { kind: 'cls', min: 113, max: 128 },
+        ]),
+      });
+
+    });
+
     it('Poetry', () => {
 
+      // Basic q tags
+      // - multiple indentations
+      // - interaction with p / v hierachies
       text = `\\p
               \\v 14 Yahweh God said to the serpent,
               \\q1 "Because you have done this,
@@ -162,6 +216,10 @@ to describe the contents of this chapter
           { min: 490, max: 517, kind: 'q', data: { indent: 2 } },
         ]),
       });
+
+      // More complex q tags
+      // - check qr closes q
+      // - interaction with p / v hierachies
     });
   });
 });
