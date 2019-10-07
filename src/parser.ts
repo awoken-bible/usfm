@@ -44,6 +44,16 @@ interface StyleBlockBase {
 };
 
 /**
+ * Represents any StyleBlock with no additional data section
+ * for example paragraphs
+ */
+interface StyleBlockNoData extends StyleBlockBase{
+	kind : "p" |
+		     "qa" | "qr" | "qc" | "qd" | "b" // poetic markup
+	;
+};
+
+/**
  * Represents a region of text making up a single verse
  */
 interface StyleBlockVerse extends StyleBlockBase{
@@ -54,16 +64,17 @@ interface StyleBlockVerse extends StyleBlockBase{
 	};
 };
 
-/**
- * Represents a region of text making up an auto-line-wrapping paragraph
- * of flowing text which may span multiple verses
- */
-interface StyleBlockParagraph extends StyleBlockBase{
-	kind : "p";
-};
+interface StyleBlockPoetry extends StyleBlockBase {
+	kind : "q" | "qm";
 
-type StyleBlock = (StyleBlockVerse |
-									 StyleBlockParagraph
+	data : {
+		indent : number,
+	},
+}
+
+type StyleBlock = (StyleBlockNoData    |
+									 StyleBlockVerse     |
+									 StyleBlockPoetry
 									);
 
 interface ParseResultBody {
@@ -323,43 +334,93 @@ function bodyParser(markers : Marker[],
 		styling : [],
 	};
 
+	// maps marker kinds (eg p for \p) to the currently open block
+	// of that type. Note that we cheat and group certain mutually exclusive tags
+	// eg, a \qr marker (poetry right aligned) will automatically close as
+	// \q1 marker (poetry left aligned, indent 1) tag, thus we store both
+	// as simply 'q' in this map
 	let cur_open : { [index: string] : StyleBlock } = {};
+
+	// utility function that closes a currently open block
+	function closeTagType(kind : string, t_idx : number){
+		if(cur_open[kind]){
+			cur_open[kind].max = t_idx;
+			result.styling.push(cur_open[kind]);
+			delete cur_open[kind];
+		}
+	}
 
 	let marker : Marker | undefined;
 	while(marker = markers.shift()){
-		let min = result.text.length;
+
+		let t_idx = result.text.length; // newly opened sections begin after the space character
+
 		switch(marker.kind){
+				////////////////////////////////////////////////////////////////////////
 			case 'p':
-				if(cur_open['p']){
-					cur_open['p'].max = min;
-					result.styling.push(cur_open['p']);
-				}
+				closeTagType('p', t_idx);
+				closeTagType('q', t_idx); // poetry doesn't span paragraphs
 				cur_open['p'] = {
-					kind: 'p', min: min, max: min,
+					kind: 'p', min: t_idx, max : t_idx,
 				};
 				break;
+
+				////////////////////////////////////////////////////////////////////////
 			case 'v':
-				result.text += marker.text;
-				if(cur_open['v']){
-					cur_open['v'].max = min;
-					result.styling.push(cur_open['v']);
-				}
+				result.text += marker.text || "";
+				closeTagType('v', t_idx);
 				if(marker.data === undefined){
 					pushError(marker, "Expected verse marker to have verse number as data");
 				} else if (!marker.data.match(/\d+/)) {
 					pushError(marker, "Expected verse marker's data to be integer");
 				} else {
 					cur_open['v'] = {
-						kind: 'v', min: min, max: min,
+						kind: 'v', min: t_idx, max : t_idx,
 						data: { verse: parseInt(marker.data) },
 					};
 				}
 				break;
+
+				////////////////////////////////////////////////////////////////////////
+			case 'q':  // poetry, indent given by marker.level
+			case 'qm': // embedded poetry, indent given by marker.level
+				result.text += marker.text || "";
+				closeTagType('q', t_idx);
+				cur_open['q'] = {
+					min: t_idx, max : t_idx,
+					kind: marker.kind,
+					data: { indent: marker.level || 1 }
+				};
+				break;
+
+			case 'qr': // poetry, right aligned
+			case 'qc': // poetry, center aligned
+			case 'qa': // poetry acrostic heading
+			case 'qd': // poetry closing note (eg, "for the director of music" at end of psalms)
+			case 'b':  // blank line between poetry stanzas, or between poetry and prose text
+				if(cur_open['q']){
+					cur_open['q'].max = t_idx;
+					result.styling.push(cur_open['q']);
+				}
+				if(marker.kind === 'b'){
+					if(marker.text !== undefined || marker.data !== undefined){
+						pushError(marker, "\\b marker (blank line) must not have associated text or data content - content will be skipped");
+					}
+				} else {
+					result.text += marker.text || "";
+				}
+				cur_open['q'] = {
+					min: t_idx, max: t_idx,
+					kind: marker.kind,
+				};
+				break;
+
+				////////////////////////////////////////////////////////////////////////
+
 			default:
 				console.log("WARNING - skipping unknown marker: " + marker.kind);
 				break;
 		}
-		let max = result.text.length;
 	}
 
 	// Close all outstanding blocks implicity at end of chapter
@@ -370,13 +431,26 @@ function bodyParser(markers : Marker[],
 		result.styling.push(cur_open[k]);
 	}
 
-	// Sort blocks
-	result.styling.sort((a,b) => {
-		if(a.min == b.min){ return b.max - a.max; }
+	_sortStyleBlocks(result.styling);
+	return result;
+}
+
+function _sortStyleBlocks(styling : StyleBlock[]) : StyleBlock[] {
+	styling.sort((a,b) => {
+		if(a.min == b.min){
+			if(b.max == a.max){
+				// :TODO: this isn't really nessacery, except for ensuring fully
+				// consistant sort order for unit tests
+				// (without this blocks with same min and max are indistinguishable,
+				//  so sorting depends on input order)
+				return a.kind.localeCompare(b.kind);
+			} else {
+				return b.max - a.max;
+			}
+		}
 		return a.min - b.min;
 	});
-
-	return result;
+	return styling;
 }
 
 

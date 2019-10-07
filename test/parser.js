@@ -1,9 +1,15 @@
 "use strict";
 
 const chai     = require('chai');
+const rewire   = require('rewire');
 const expect   = chai.expect;
 
 const { parse } = require('../src/parser.ts');
+const lexer     = require('../src/lexer.ts').default;
+
+const __parser__      = rewire('../src/parser.ts');
+const bodyParser      = __parser__.__get__('bodyParser');
+const sortStyleBlocks = __parser__.__get__('_sortStyleBlocks');
 
 let text;
 
@@ -69,55 +75,93 @@ to describe the contents of this chapter
     });
   });
 
-  it('Body', () => {
-    let text = `\\id GEN Test Bible3
-                \\c 1
-                \\p
-                \\v 1 Verse one text content is here.
-                \\v 2 Followed closely by verse 2.
-                \\p
-                \\v 3 We can even start new paragraphs.
-               `;
+  describe('Body', () => {
+    let text;
+    it('Following chapter headers', () => {
 
-    expect(parse(text)).to.deep.equal({
-      success: true,
-      errors : [],
-      book_id: 'GEN',
-      id_text: 'Test Bible3',
-      toc: {},
-      toca: {},
-      major_title: {},
-      chapters: [
-        { success: true,
-          errors : [],
-          chapter: 1,
-          body   : {
-            text: 'Verse one text content is here.Followed closely by verse 2.We can even start new paragraphs.',
-            styling: [
-              { min:  0, max: 59,
-                kind: 'p'
-              },
-              { min:  0, max: 31,
-                kind: 'v',
-                data: { verse: 1 },
-              },
-              { min: 31, max: 59,
-                kind: 'v',
-                data: { verse: 2 },
-              },
-              { min: 59, max: 92,
-                kind: 'p'
-              },
-              { min: 59, max: 92,
-                kind: 'v',
-                data: { verse: 3 },
-              },
-            ],
-          }
-        },
-      ]
+      let text = `\\id GEN Test Bible3
+                  \\c 1
+                  \\p
+                  \\v 1 Verse one text content is here.
+                  \\v 2 Followed closely by verse 2.
+                  \\p
+                  \\v 3 We can even start new paragraphs.`;
+
+      expect(parse(text)).to.deep.equal({
+        success: true,
+        errors : [],
+        book_id: 'GEN',
+        id_text: 'Test Bible3',
+        toc: {},
+        toca: {},
+        major_title: {},
+        chapters: [
+          { success: true,
+            errors : [],
+            chapter: 1,
+            body   : {
+              text: 'Verse one text content is here.Followed closely by verse 2.We can even start new paragraphs.',
+              styling: [
+                 { min:  0, max: 59, kind: 'p' },
+                { min:  0, max: 31, kind: 'v', data: { verse: 1 } },
+                { min: 31, max: 59, kind: 'v', data: { verse: 2 } },
+                { min: 59, max: 92, kind: 'p' },
+                { min: 59, max: 92, kind: 'v', data: { verse: 3 } },
+              ],
+            }
+          },
+        ]
+      });
     });
 
-  });
+    it('Poetry', () => {
 
+      text = `\\p
+              \\v 14 Yahweh God said to the serpent,
+              \\q1 "Because you have done this,
+              \\q2 you are cursed above all livestock,
+              \\q2 and above every animal of the field.
+              \\q1 You shall go on your belly
+              \\q2 and you shall eat dust all the days of your life.
+              \\q1
+              \\v 15 I will put hostility between you and the woman,
+              \\q2 and between your offspring and her offspring.
+              \\q1 He will bruise your head,
+              \\q2 and you will bruise his heel."
+              \\p
+              \\v 16 To the woman he said,
+              \\q1 "I will greatly multiply your pain in childbirth.
+              \\q2 You will bear children in pain.
+              \\q1 Your desire will be for your husband,
+              \\q2 and he will rule over you."`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: `Yahweh God said to the serpent,"Because you have done this,you are cursed above all livestock,and above every animal of the field.You shall go on your bellyand you shall eat dust all the days of your life.I will put hostility between you and the woman,and between your offspring and her offspring.He will bruise your head,and you will bruise his heel."To the woman he said,"I will greatly multiply your pain in childbirth.You will bear children in pain.Your desire will be for your husband,and he will rule over you."`,
+        styling: sortStyleBlocks([
+          { min:   0, max: 352, kind: 'p' },
+          { min: 352, max: 517, kind: 'p' },
+
+          { min:   0, max: 205, kind: 'v', data: { verse: 14 } },
+          { min: 205, max: 352, kind: 'v', data: { verse: 15 } },
+          { min: 352, max: 517, kind: 'v', data: { verse: 16 } },
+
+          { min:  31, max:  59, kind: 'q', data: { indent: 1 } },
+          { min:  59, max:  94, kind: 'q', data: { indent: 2 } },
+          { min:  94, max: 130, kind: 'q', data: { indent: 2 } },
+          { min: 130, max: 156, kind: 'q', data: { indent: 1 } },
+          { min: 156, max: 205, kind: 'q', data: { indent: 2 } },
+
+          { min: 205, max: 252, kind: 'q', data: { indent: 1 } },
+          { min: 252, max: 297, kind: 'q', data: { indent: 2 } },
+          { min: 297, max: 322, kind: 'q', data: { indent: 1 } },
+          { min: 322, max: 352, kind: 'q', data: { indent: 2 } },
+
+          { min: 373, max: 422, kind: 'q', data: { indent: 1 } },
+          { min: 422, max: 453, kind: 'q', data: { indent: 2 } },
+          { min: 453, max: 490, kind: 'q', data: { indent: 1 } },
+          { min: 490, max: 517, kind: 'q', data: { indent: 2 } },
+        ]),
+      });
+    });
+  });
 });
