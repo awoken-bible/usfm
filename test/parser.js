@@ -4,10 +4,10 @@ const chai     = require('chai');
 const rewire   = require('rewire');
 const expect   = chai.expect;
 
-const { parse } = require('../src/parser.ts');
-const lexer     = require('../src/lexer.ts').default;
+const { parse } = require('../lib/parser.ts');
+const lexer     = require('../lib/lexer.ts').default;
 
-const __parser__      = rewire('../src/parser.ts');
+const __parser__      = rewire('../lib/parser.ts');
 const bodyParser      = __parser__.__get__('bodyParser');
 const sortStyleBlocks = __parser__.__get__('_sortStyleBlocks');
 

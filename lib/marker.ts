@@ -38,24 +38,24 @@ export interface Marker {
 	text?   : string,
 };
 
-export enum MarkerType {
+export enum MarkerStyleType {
 	// Comments taken from: https://ubsicap.github.io/usfm/about/syntax.html
 
 	/**
 	 * Paragraph markers end with the next space character
 	 */
-	Paragraph,
+	Paragraph = "paragraph",
 
 	/**
 	 * Character markers occur in pairs, marking a span of text within a paragraph.
 	 */
-	Character,
+	Character = "character",
 
 	/**
 	 * Note markers also occur in pairs, marking the start and end of the footnote,
 	 * cross reference, or study note content.
 	 */
-	Note,
+	Note = "note",
 
 	/**
 	 * For marker pairs (character and note), the opening marker ends with the
@@ -93,7 +93,11 @@ const _markerDataRegexp : {
 	// - (footnote is not used)
 	// . (a custom character used to reference the footnote)
 	'f'   : /^[\+\-a-zA-Z0-9]/,
+};
 
+const _marker_types : {
+	[ index: string ]: MarkerStyleType;
+} = {
 
 };
 
@@ -105,4 +109,18 @@ export function getMarkerDataRegexp(kind : string) : RegExp | undefined {
 	if(kind.endsWith('*')){ return undefined; }
 
 	return _markerDataRegexp[kind];
+}
+
+/**
+ * Returns true if a marker is closed by a corresponding * suffixed marker,
+ * for example \qs .... qs*
+ */
+export function isMarkerPaired(kind : string) : boolean {
+	let marker_type = _marker_types[kind];
+
+	if(marker_type === undefined){
+		throw new Error("Unknown marker kind: " + kind);
+	}
+	return (marker_type === MarkerStyleType.Character ||
+					marker_type === MarkerStyleType.Note);
 }

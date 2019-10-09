@@ -52,7 +52,7 @@
       ".ts"
     ],
     "include": [
-      "src/**/*"
+      "lib/**/*"
     ],
     "exclude": [
       "**/*/*.d.ts"

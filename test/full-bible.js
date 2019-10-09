@@ -4,7 +4,7 @@ const chai             = require('chai');
 const fs               = require('fs');
 const { execFileSync } = require('child_process');
 
-const { lexer }        = require('../src/lexer.ts');
+const { lexer }        = require('../lib/lexer.ts');
 
 const expect           = chai.expect;
 

@@ -3,7 +3,7 @@
 const chai     = require('chai');
 const expect   = chai.expect;
 
-const { lexer } = require('../src/lexer.ts');
+const { lexer } = require('../lib/lexer.ts');
 
 let text;
 
