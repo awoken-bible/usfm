@@ -308,9 +308,9 @@ function chapterParser(markers : Marker[]) : ParseResultChapter {
 		let marker = markers[m_idx];
 		switch(marker.kind){
 			case 'ca':
-				result.chapter_alt = marker.text ? parseInt(marker.text) : undefined;
-				break;
-			case 'ca*':
+				if(!marker.closing){
+					result.chapter_alt = marker.text ? parseInt(marker.text) : undefined;
+				}
 				break;
 			case 'cl':
 				result.label = marker.text;
