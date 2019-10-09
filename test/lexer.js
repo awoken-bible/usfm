@@ -51,7 +51,7 @@ describe("lexer", () => {
 
     // don't need whitespace after close tag
     let result = [
-      { kind: 'f*' },
+      { kind: 'f', closing: true },
       { kind: 'v', data: '1', text: 'hi' },
     ];
     expect(Array.from(lexer("\\f*\\v 1 hi" ))).to.deep.equal(result);
@@ -85,7 +85,7 @@ describe("lexer", () => {
       { kind: 'f', data: '+' },
       { kind: 'fk', text: 'Issac:' },
       { kind: 'ft', text: 'In Hebrew means "laughter"' },
-      { kind: 'f*' },
+      { kind: 'f', closing: true },
     ]);
 
     text = "\\v 1 In the beginning, God\\f + \\fr 1:1  \\ft The Hebrew word rendered “God” is “אֱלֹהִ֑ים” (Elohim).\\f* created the heavens and the earth.";
@@ -94,7 +94,7 @@ describe("lexer", () => {
       { kind: 'f',  data: '+' },
       { kind: 'fr', data: '1:1' },
       { kind: 'ft', text: 'The Hebrew word rendered “God” is “אֱלֹהִ֑ים” (Elohim).' },
-      { kind: 'f*', text: 'created the heavens and the earth.' },
+      { kind: 'f',  closing: true, text: 'created the heavens and the earth.' },
     ]);
   });
 
@@ -184,7 +184,7 @@ describe("lexer", () => {
       { kind: 'f',   data: '+' },
       { kind: 'fr',  data: '11:15-16' },
       { kind: 'ft',              text: 'Verses 15 and 16 are omitted by the best authorities.' },
-      { kind: 'f*' },
+      { kind: 'f', closing: true },
       { kind: 'q', level: 1 },
       { kind: 'v', data: '17',   text: 'The Lord’s gift remains with the godly.' },
       { kind: 'q', level: 2,     text: 'His good pleasure will prosper forever.' },

@@ -58,7 +58,7 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 
 		if(text.charAt(i) == '*'){
 			// Then its a closing marker
-			marker.kind += '*';
+			marker.closing = true;
 			++i;
 		} else {
 			if(!isWhitespace(text.charAt(i))){
@@ -73,7 +73,7 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		while(isWhitespace(text.charAt(i))){ ++i; }
 
 		// Parse data string
-		let data_regexp = getMarkerDataRegexp(marker.kind);
+		let data_regexp = getMarkerDataRegexp(marker);
 		if(data_regexp){
 			let match = text.substring(i).match(data_regexp);
 			if(!match){
