@@ -27,6 +27,12 @@ export interface Marker {
 	nested?: boolean,
 
 	/**
+	 * If set then this marker closes a Character or Note span, eg, \qs*
+	 * in "\qs ... \qs*"
+	 */
+	closing?: boolean,
+
+	/**
 	 * Value of data field following the marker, eg "\c 1" represents chapter
 	 * 1, and thus data is set to "1"
 	 */
@@ -104,11 +110,11 @@ const _marker_types : {
 /**
  * Retrieves a regex representing the data that should follow a particular marker
  */
-export function getMarkerDataRegexp(kind : string) : RegExp | undefined {
+export function getMarkerDataRegexp(marker : Marker) : RegExp | undefined {
 	// Never get data following a closing tag
-	if(kind.endsWith('*')){ return undefined; }
+	if(marker.closing){ return undefined; }
 
-	return _markerDataRegexp[kind];
+	return _markerDataRegexp[marker.kind];
 }
 
 /**
