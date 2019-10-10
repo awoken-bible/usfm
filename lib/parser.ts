@@ -54,7 +54,9 @@ interface StyleBlockNoData extends StyleBlockBase{
 		// embedded paragrahs: https://ubsicap.github.io/usfm/paragraphs/
 	  "pmo" | "pm" | "pmc" | "pmr" |
     // poetry: https://ubsicap.github.io/usfm/poetry/
-	  "qa" | "qr" | "qc" | "qd" | "qac" | "qs" |
+		"qa" | "qr" | "qc" | "qd" | "qac" | "qs" |
+		// lists: https://ubsicap.github.io/usfm/lists/index.html#lh
+		"lh" | "lf"	| "litl" | "lik" |
 	  // misc
 	  "b" // blank line (between paragraphs or poetry)
 	);
@@ -68,20 +70,37 @@ interface StyleBlockVerse extends StyleBlockBase{
 
 	data : {
 		verse : number,
+	} | {
+		is_range : true,
+		start    : number,
+		end      : number,
 	};
 };
 
 interface StyleBlockIndented extends StyleBlockBase {
-	kind : "q" | "qm" | "pi" | "ph";
+	kind : "q" | "qm" | "pi" | "ph" | "li" | "lim";
 
 	data : {
 		indent : number,
 	},
 }
 
+interface StyleBlockListValue extends StyleBlockBase {
+	// https://ubsicap.github.io/usfm/lists/index.html#liv-liv
+	//
+	// Allows a list of have aligned columns of data, designed to
+	// be a more flexible than real tabls, good for displaying in
+	// width constrained areas
+	kind: "liv",
+	data: {
+		column: number,
+	}
+}
+
 type StyleBlock = (StyleBlockNoData    |
 									 StyleBlockVerse     |
-									 StyleBlockIndented
+									 StyleBlockIndented  |
+									 StyleBlockListValue
 									);
 
 interface ParseResultBody {
@@ -379,6 +398,7 @@ function bodyParser(markers : Marker[],
 			case 'nb' : // no break paragraph, use to continue previous (eg, over chapter boundary)
 				closeTagType('p', t_idx);
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
+				closeTagType('l', t_idx); // lists  don't   span paragraphs
 				result.text += marker.text || "";
 				cur_open['p'] = {
 					kind: marker.kind, min: t_idx, max : t_idx,
@@ -402,13 +422,22 @@ function bodyParser(markers : Marker[],
 				closeTagType('v', t_idx);
 				if(marker.data === undefined){
 					pushError(marker, "Expected verse marker to have verse number as data");
-				} else if (!marker.data.match(/\d+/)) {
-					pushError(marker, "Expected verse marker's data to be integer");
-				} else {
+				} else if (marker.data.match(/^\d+$/)) {
 					cur_open['v'] = {
 						kind: 'v', min: t_idx, max : t_idx,
 						data: { verse: parseInt(marker.data) },
 					};
+				} else if (marker.data.match(/^\d+-\d+$/)) {
+					let parts = marker.data.split('-');
+					cur_open['v'] = {
+						kind: 'v', min: t_idx, max : t_idx,
+						data: { is_range : true,
+										start    : parseInt(parts[0]),
+										end      : parseInt(parts[1])
+									},
+					};
+				} else {
+					pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
 				}
 				break;
 
@@ -437,10 +466,50 @@ function bodyParser(markers : Marker[],
 				break;
 
 				////////////////////////////////////////////////////////////////////////
+				// Lists
+			case 'lh':
+			case 'lf':
+				result.text += marker.text || "";
+				closeTagType('l', t_idx); // close open list elements
+				closeTagType('p', t_idx); // close paragraphs
+				cur_open['l'] = {
+					min: t_idx, max: t_idx, kind: marker.kind
+				};
+				break;
+			case 'li':
+			case 'lim':
+				result.text += marker.text || "";
+				closeTagType('l', t_idx); // close open list elements
+				closeTagType('p', t_idx); // close paragraphs
+				cur_open['l'] = {
+					min: t_idx, max: t_idx, kind: marker.kind, data: { indent: marker.level || 1 }
+				};
+				break;
+			case 'liv':
+				if(marker.closing){
+					result.text += marker.text || "";
+					if(cur_open[marker.kind] === undefined){
+						pushError(marker, `Attempt to close paired makrer of kind ${marker.kind}, but the environment is not currently open`);
+					} else {
+						closeTagType(marker.kind, t_idx);
+					}
+				} else {
+					if(result.text){
+						result.text += marker.text;
+					}
+					cur_open[marker.kind] = {
+						min: t_idx, max: t_idx, kind: marker.kind, data: { column: marker.level || 1 }
+					};
+				}
+				break;
+
+				////////////////////////////////////////////////////////////////////////
 				// PAIRED MARKERS
 
 			case 'qac':
 			case 'qs':
+			case 'lik':
+			case 'litl':
 				if(marker.closing){
 					result.text += marker.text || "";
 					if(cur_open[marker.kind] === undefined){
@@ -463,10 +532,11 @@ function bodyParser(markers : Marker[],
 			case 'b':
 				closeTagType('p', t_idx);
 				closeTagType('q', t_idx);
+				closeTagType('l', t_idx);
 				if(marker.text !== undefined || marker.data !== undefined){
 					pushError(marker, "\\b marker (blank line) must not have associated text or data content - content will be skipped");
 				}
-				result.styling.push({ kind: 'p', min: t_idx, max: t_idx });
+				result.styling.push({ kind: 'b', min: t_idx, max: t_idx });
 				break;
 
 				////////////////////////////////////////////////////////////////////////

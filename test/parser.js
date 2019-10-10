@@ -267,5 +267,147 @@ to describe the contents of this chapter
         ]),
       });
     });
+
+    it('Lists', () => {
+
+      // https://ubsicap.github.io/usfm/lists/index.html#liv-liv
+      text = `\\lh
+              \\v 16-22 This is the list of the administrators of the tribes of Israel:
+              \\li1 \\lik Reuben\\lik* \\liv1 Eliezer son of Zichri\\liv1*
+              \\li1 \\lik Simeon\\lik* \\liv1 Shephatiah son of Maacah\\liv1*
+              \\li1 \\lik Levi\\lik* \\liv1 Hashabiah son of Kemuel\\liv1*
+              \\li1 \\lik Aaron\\lik* \\liv1 Zadok\\liv1*
+              \\li1 \\lik Judah\\lik* \\liv1 Elihu, one of King David's brothers\\liv1*
+              \\li1 \\lik Issachar\\lik* \\liv1 Omri son of Michael\\liv1*
+              \\li1 \\lik Zebulun\\lik* \\liv1 Ishmaiah son of Obadiah\\liv1*
+              \\li1 \\lik Naphtali\\lik* \\liv1 Jeremoth son of Azriel\\liv1*
+              \\li1 \\lik Ephraim\\lik* \\liv1 Hoshea son of Azaziah\\liv1*
+              \\li1 \\lik West Manasseh\\lik* \\liv1 Joel son of Pedaiah\\liv1*
+              \\li1 \\lik East Manasseh\\lik* \\liv1 Iddo son of Zechariah\\liv1*
+              \\li1 \\lik Benjamin\\lik* \\liv1 Jaasiel son of Abner\\liv1*
+              \\li1 \\lik Dan\\lik* \\liv1 Azarel son of Jeroham\\liv1*
+              \\lf This was the list of the administrators of the tribes of Israel.`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: "This is the list of the administrators of the tribes of Israel: ReubenEliezer son of Zichri SimeonShephatiah son of Maacah LeviHashabiah son of Kemuel AaronZadok JudahElihu, one of King David's brothers IssacharOmri son of Michael ZebulunIshmaiah son of Obadiah NaphtaliJeremoth son of Azriel EphraimHoshea son of Azaziah West ManassehJoel son of Pedaiah East ManassehIddo son of Zechariah BenjaminJaasiel son of Abner DanAzarel son of JerohamThis was the list of the administrators of the tribes of Israel.",
+        styling: sortStyleBlocks([
+          { kind: 'v',   min:   0, max: 507, data: { is_range: true, start: 16, end: 22 } },
+
+          { kind: 'lh',  min:   0, max:  63 },
+
+          { kind: 'li',  min:  63, max:  91, data: { indent: 1 } },
+          { kind: 'lik', min:  63, max:  70 },
+          { kind: 'liv', min:  70, max:  91, data: { column: 1 } },
+
+          { kind: 'li',  min:  91, max: 122, data: { indent: 1 } },
+          { kind: 'lik', min:  91, max:  98 },
+          { kind: 'liv', min:  98, max: 122, data: { column: 1 } },
+
+          { kind: 'li',  min: 122, max: 150, data: { indent: 1 } },
+          { kind: 'lik', min: 122, max: 127 },
+          { kind: 'liv', min: 127, max: 150, data: { column: 1 } },
+
+          { kind: 'li',  min: 150, max: 161, data: { indent: 1 } },
+          { kind: 'lik', min: 150, max: 156 },
+          { kind: 'liv', min: 156, max: 161, data: { column: 1 } },
+
+          { kind: 'li',  min: 161, max: 202, data: { indent: 1 } },
+          { kind: 'lik', min: 161, max: 167 },
+          { kind: 'liv', min: 167, max: 202, data: { column: 1 } },
+
+          { kind: 'li',  min: 202, max: 230, data: { indent: 1 } },
+          { kind: 'lik', min: 202, max: 211 },
+          { kind: 'liv', min: 211, max: 230, data: { column: 1 } },
+
+          { kind: 'li',  min: 230, max: 261, data: { indent: 1 } },
+          { kind: 'lik', min: 230, max: 238 },
+          { kind: 'liv', min: 238, max: 261, data: { column: 1 } },
+
+          { kind: 'li',  min: 261, max: 292, data: { indent: 1 } },
+          { kind: 'lik', min: 261, max: 270 },
+          { kind: 'liv', min: 270, max: 292, data: { column: 1 } },
+
+          { kind: 'li',  min: 292, max: 321, data: { indent: 1 } },
+          { kind: 'lik', min: 292, max: 300 },
+          { kind: 'liv', min: 300, max: 321, data: { column: 1 } },
+
+          { kind: 'li',  min: 321, max: 354, data: { indent: 1 } },
+          { kind: 'lik', min: 321, max: 335 },
+          { kind: 'liv', min: 335, max: 354, data: { column: 1 } },
+
+          { kind: 'li',  min: 354, max: 389, data: { indent: 1 } },
+          { kind: 'lik', min: 354, max: 368 },
+          { kind: 'liv', min: 368, max: 389, data: { column: 1 } },
+
+          { kind: 'li',  min: 389, max: 418, data: { indent: 1 } },
+          { kind: 'lik', min: 389, max: 398 },
+          { kind: 'liv', min: 398, max: 418, data: { column: 1 } },
+
+          { kind: 'li',  min: 418, max: 443, data: { indent: 1 } },
+          { kind: 'lik', min: 418, max: 422 },
+          { kind: 'liv', min: 422, max: 443, data: { column: 1 } },
+
+          { kind: 'lf',  min: 443, max: 507 },
+        ]),
+      });
+
+
+      // https://ubsicap.github.io/usfm/lists/index.html#litl-litl
+      text = `\\b
+              \\pm The list of the men of Israel:
+              \\b
+              \\lim1
+              \\v 8 the descendants of Parosh - \\litl 2,172\\litl*
+              \\lim1
+              \\v 9 of Shephatiah - \\litl 372\\litl*
+              \\lim1
+              \\v 10 of Arah - \\litl 652\\litl*
+              \\lim1
+              \\v 11 of Pahath-Moab (through the line of Jeshua and Joab) - \\litl 2,818\\litl*
+              \\lim1
+              \\v 12 of Elam - \\litl 1,254\\litl*
+              \\lim1
+              \\v 13 of Zattu - \\litl 845\\litl*
+              \\lim1
+              \\v 14 of Zaccai - \\litl 760\\litl*`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: "The list of the men of Israel:the descendants of Parosh - 2,172of Shephatiah - 372of Arah - 652of Pahath-Moab (through the line of Jeshua and Joab) - 2,818of Elam - 1,254of Zattu - 845of Zaccai - 760",
+        styling: sortStyleBlocks([
+          { kind: 'b',  min:   0, max:   0 },
+          { kind: 'b',  min:  30, max:  30 },
+
+          { kind: 'pm', min:   0, max:  30 },
+
+          { kind: 'v',    min:  30, max:  63, data: { verse:  8 } },
+          { kind: 'lim',  min:  30, max:  63, data: { indent: 1 } },
+          { kind: 'litl', min:  57, max:  63 },
+
+          { kind: 'v',    min:  63, max:  82, data: { verse:  9 } },
+          { kind: 'lim',  min:  63, max:  82, data: { indent: 1 } },
+          { kind: 'litl', min:  78, max:  82 },
+
+          { kind: 'v',    min:  82, max:  95, data: { verse: 10 } },
+          { kind: 'lim',  min:  82, max:  95, data: { indent: 1 } },
+          { kind: 'litl', min:  91, max:  95 },
+
+          { kind: 'v',    min:  95, max: 155, data: { verse: 11 } },
+          { kind: 'lim',  min:  95, max: 155, data: { indent: 1 } },
+          { kind: 'litl', min: 149, max: 155 },
+
+          { kind: 'v',    min: 155, max: 170, data: { verse: 12 } },
+          { kind: 'lim',  min: 155, max: 170, data: { indent: 1 } },
+          { kind: 'litl', min: 164, max: 170 },
+
+          { kind: 'v',    min: 170, max: 184, data: { verse: 13 } },
+          { kind: 'lim',  min: 170, max: 184, data: { indent: 1 } },
+          { kind: 'litl', min: 180, max: 184 },
+
+          { kind: 'v',    min: 184, max: 199, data: { verse: 14 } },
+          { kind: 'lim',  min: 184, max: 199, data: { indent: 1 } },
+          { kind: 'litl', min: 195, max: 199 },
+        ]),
+      });
+
+    });
   });
 });
