@@ -54,7 +54,7 @@ interface StyleBlockNoData extends StyleBlockBase{
 		// embedded paragrahs: https://ubsicap.github.io/usfm/paragraphs/
 	  "pmo" | "pm" | "pmc" | "pmr" |
     // poetry: https://ubsicap.github.io/usfm/poetry/
-	  "qa" | "qr" | "qc" | "qd" |
+	  "qa" | "qr" | "qc" | "qd" | "qac" | "qs" |
 	  // misc
 	  "b" // blank line (between paragraphs or poetry)
 	);
@@ -434,6 +434,28 @@ function bodyParser(markers : Marker[],
 					min: t_idx, max: t_idx,
 					kind: marker.kind,
 				};
+				break;
+
+				////////////////////////////////////////////////////////////////////////
+				// PAIRED MARKERS
+
+			case 'qac':
+			case 'qs':
+				if(marker.closing){
+					result.text += marker.text || "";
+					if(cur_open[marker.kind] === undefined){
+						pushError(marker, `Attempt to close paired makrer of kind ${marker.kind}, but the environment is not currently open`);
+					} else {
+						closeTagType(marker.kind, t_idx);
+					}
+				} else {
+					if(result.text){
+						result.text += " " + marker.text;
+					}
+					cur_open[marker.kind] = {
+						min: t_idx, max: t_idx, kind: marker.kind
+					};
+				}
 				break;
 
 				////////////////////////////////////////////////////////////////////////

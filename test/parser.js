@@ -217,9 +217,55 @@ to describe the contents of this chapter
         ]),
       });
 
-      // More complex q tags
-      // - check qr closes q
-      // - interaction with p / v hierachies
+      // More complex markup
+      text = `\\m
+              \\qa Aleph
+              \\m
+              \\v 1 Hello World
+              \\q1 Poetry line
+              \\qr Right poetry
+              \\qc Center poetry
+              \\m
+              \\qa Beth
+              \\m
+              \\q1
+              \\v 2 Verse 2 opening
+              \\q2 Indented
+              \\qm3 Embedded
+              \\v 3 Verse 3 opening
+              \\q1 Hello \\qac B \\qac* en
+              \\q2 Goodbye world \\qs Selah \\qs*`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: `AlephHello WorldPoetry lineRight poetryCenter poetryBethVerse 2 openingIndentedEmbeddedVerse 3 openingHello BenGoodbye world Selah`,
+        styling: sortStyleBlocks([
+          { min:   0, max:   5, kind: 'm'  },
+          { min:   5, max:  52, kind: 'm'  },
+          { min:  52, max:  56, kind: 'm'  },
+          { min:  56, max: 130, kind: 'm'  },
+
+          { min:   0, max:   5, kind: 'qa' },
+          { min:  52, max:  56, kind: 'qa' },
+
+          { min:   5, max:  56, kind: 'v',  data: { verse: 1 }  },
+          { min:  56, max:  87, kind: 'v',  data: { verse: 2 }  },
+          { min:  87, max: 130, kind: 'v',  data: { verse: 3 }  },
+
+          { min:  16, max:  27, kind: 'q',  data: { indent: 1 } },
+          { min:  27, max:  39, kind: 'qr' },
+          { min:  39, max:  52, kind: 'qc' },
+
+          { min:  56, max:  71, kind: 'q',  data: { indent: 1 } },
+          { min:  71, max:  79, kind: 'q',  data: { indent: 2 } },
+          { min:  79, max: 102, kind: 'qm', data: { indent: 3 } },
+
+          { min: 102, max: 111, kind: 'q',  data: { indent: 1 } },
+          { min: 111, max: 130, kind: 'q',  data: { indent: 2 } },
+
+          { min: 107, max: 109, kind: 'qac' },
+          { min: 124, max: 130, kind: 'qs', },
+        ]),
+      });
     });
   });
 });
