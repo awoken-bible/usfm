@@ -409,5 +409,70 @@ to describe the contents of this chapter
       });
 
     });
+
+    it('Table', () => {
+      // Numbers 7:12-83 adapted to make test case more complex
+      text = `\\p
+              \\v 12-83 They presented their offerings in the following order:
+              \\tr \\th1 Day  \\thr2 Tribe    \\th3 Leader
+              \\tr \\tc1 1st  \\tcr2 Judah    \\tc3 Nahshon son of Amminadab
+              \\tr \\tc1 2nd  \\tcr2 Issachar \\tc3 Nethanel son of Zuar
+              \\tr \\tc1 3rd  \\tcr2 Zebulun  \\tc3 Eliab son of Helon
+              \\tr \\tc1 4th  \\tcr2 Reuben   \\tc3 Elizur son of Shedeur
+              \\tr \\tc1 5th  \\tcr2 Simeon   \\tc3 Shelumiel son of Zurishaddai
+              \\tr \\tc1-3 Spanning text
+              \\tr \\tc1 Goes \\tc2-3 Here
+              \\p
+              \\v 84 Paragraph should close table`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: "They presented their offerings in the following order:DayTribeLeader1stJudahNahshon son of Amminadab2ndIssacharNethanel son of Zuar3rdZebulunEliab son of Helon4thReubenElizur son of Shedeur5thSimeonShelumiel son of ZurishaddaiSpanning textGoesHereParagraph should close table",
+        styling: sortStyleBlocks([
+          { kind: 'v',    min:   0, max: 247, data: { is_range: true, start: 12, end: 83 } },
+          { kind: 'v',    min: 247, max: 275, data: { verse: 84 } },
+
+          { kind: 'p',    min:   0, max:  54 },
+          { kind: 'p',    min: 247, max: 275 },
+
+          { kind: 'tr',   min:  54, max:  68 },
+          { kind: 'th',   min:  54, max:  57, data: { column: 1 } },
+          { kind: 'thr',  min:  57, max:  62, data: { column: 2 } },
+          { kind: 'th',   min:  62, max:  68, data: { column: 3 } },
+
+          { kind: 'tr',   min:  68, max: 100 },
+          { kind: 'tc',   min:  68, max:  71, data: { column: 1 } },
+          { kind: 'tcr',  min:  71, max:  76, data: { column: 2 } },
+          { kind: 'tc',   min:  76, max: 100, data: { column: 3 } },
+
+          { kind: 'tr',   min: 100, max: 131 },
+          { kind: 'tc',   min: 100, max: 103, data: { column: 1 } },
+          { kind: 'tcr',  min: 103, max: 111, data: { column: 2 } },
+          { kind: 'tc',   min: 111, max: 131, data: { column: 3 } },
+
+          { kind: 'tr',   min: 131, max: 159 },
+          { kind: 'tc',   min: 131, max: 134, data: { column: 1 } },
+          { kind: 'tcr',  min: 134, max: 141, data: { column: 2 } },
+          { kind: 'tc',   min: 141, max: 159, data: { column: 3 } },
+
+          { kind: 'tr',   min: 159, max: 189 },
+          { kind: 'tc',   min: 159, max: 162, data: { column: 1 } },
+          { kind: 'tcr',  min: 162, max: 168, data: { column: 2 } },
+          { kind: 'tc',   min: 168, max: 189, data: { column: 3 } },
+
+          { kind: 'tr',   min: 189, max: 226 },
+          { kind: 'tc',   min: 189, max: 192, data: { column: 1 } },
+          { kind: 'tcr',  min: 192, max: 198, data: { column: 2 } },
+          { kind: 'tc',   min: 198, max: 226, data: { column: 3 } },
+
+          { kind: 'tr',   min: 226, max: 239 },
+          { kind: 'tc',   min: 226, max: 239, data: { column: { is_range: true, start: 1, end: 3 } } },
+
+          { kind: 'tr',   min: 239, max: 247 },
+          { kind: 'tc',   min: 239, max: 243, data: { column: 1 } },
+          { kind: 'tc',   min: 243, max: 247, data: { column: { is_range: true, start: 2, end: 3 } } },
+        ]),
+      });
+
+    });
   });
 });

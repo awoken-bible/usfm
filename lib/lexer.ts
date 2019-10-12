@@ -8,6 +8,12 @@ function isWhitespace(c : string){
 				 );
 }
 
+function isDigit(c: string){
+	return (c.charCodeAt(0) >= '0'.charCodeAt(0) &&
+					c.charCodeAt(0) <= '9'.charCodeAt(0)
+				 );
+}
+
 export function* lexer(text: string) : IterableIterator<Marker> {
 	const EMPTY_MARKER : Marker = {
 		kind: '',
@@ -38,7 +44,7 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		// Parse a '+', indicating a marker nested within the current context
 		// See: https://ubsicap.github.io/usfm/characters/nesting.html
 		if(text.charAt(i) == '+'){
-			marker.level = text.charCodeAt(i) - '0'.charCodeAt(0);
+			marker.nested = true;
 			++i;
 		}
 
@@ -51,9 +57,28 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		}
 
 		// Parse a level indicator, eg 'mt2' is a second level major title
-		if(text.charCodeAt(i) >= '1'.charCodeAt(0) && text.charCodeAt(i) <= '9'.charCodeAt(0)){
-			marker.level = text.charCodeAt(i) - '0'.charCodeAt(0);
-			++i;
+		if(isDigit(text.charAt(i))){
+			let start : string = "";
+			let end   : string = "";
+
+			while(isDigit(text.charAt(i))){
+				start += text.charAt(i);
+				++i;
+			}
+
+			if(text.charAt(i) !== '-'){
+				marker.level = parseInt(start);
+			} else {
+				++i; // skip the -
+				while(isDigit(text.charAt(i))){
+					end += text.charAt(i);
+					++i;
+				}
+				marker.level = { is_range : true,
+												 start    : parseInt(start),
+												 end      : parseInt(end),
+											 };
+			}
 		}
 
 		if(text.charAt(i) == '*'){

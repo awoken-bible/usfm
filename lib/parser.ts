@@ -56,7 +56,9 @@ interface StyleBlockNoData extends StyleBlockBase{
     // poetry: https://ubsicap.github.io/usfm/poetry/
 		"qa" | "qr" | "qc" | "qd" | "qac" | "qs" |
 		// lists: https://ubsicap.github.io/usfm/lists/index.html#lh
-		"lh" | "lf"	| "litl" | "lik" |
+	  "lh" | "lf"	| "litl" | "lik" |
+		//https://ubsicap.github.io/usfm/tables/index.html
+		"tr" |
 	  // misc
 	  "b" // blank line (between paragraphs or poetry)
 	);
@@ -85,22 +87,22 @@ interface StyleBlockIndented extends StyleBlockBase {
 	},
 }
 
-interface StyleBlockListValue extends StyleBlockBase {
+interface StyleBlockColumn extends StyleBlockBase {
 	// https://ubsicap.github.io/usfm/lists/index.html#liv-liv
+	// https://ubsicap.github.io/usfm/tables/index.html#th
 	//
-	// Allows a list of have aligned columns of data, designed to
-	// be a more flexible than real tabls, good for displaying in
-	// width constrained areas
-	kind: "liv",
+	// Represents elements with an associated column number,
+	// eg in tables or key/value lists
+	kind: "liv" | "th" | "thr" | "tc" | "tcr";
 	data: {
-		column: number,
+		column: number | { is_range: true, start: number, end: number },
 	}
 }
 
 type StyleBlock = (StyleBlockNoData    |
 									 StyleBlockVerse     |
 									 StyleBlockIndented  |
-									 StyleBlockListValue
+									 StyleBlockColumn
 									);
 
 interface ParseResultBody {
@@ -258,7 +260,10 @@ export function parse(text: string) : ParseResultBook {
 				}
 				break;
 			case 'mt':
-				_assignLeveledData(result.major_title, marker.level, marker.text);
+				try {
+					let level = _levelOrThrow(marker, pushError);
+					_assignLeveledData(result.major_title, level, marker.text)
+				} catch (e) {}
 				break;
 			case 'cl':
 				result.chapter_label = marker.text;
@@ -396,9 +401,11 @@ function bodyParser(markers : Marker[],
 			case 'pmr': // embedded text refrain
 			case 'mi' : // indented flush left (IE: justified text) paragraph
 			case 'nb' : // no break paragraph, use to continue previous (eg, over chapter boundary)
+			case 'tr' : // table row (not in p namespace, but behaves in the same way)
 				closeTagType('p', t_idx);
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
 				closeTagType('l', t_idx); // lists  don't   span paragraphs
+				closeTagType('t', t_idx); // tables
 				result.text += marker.text || "";
 				cur_open['p'] = {
 					kind: marker.kind, min: t_idx, max : t_idx,
@@ -410,9 +417,12 @@ function bodyParser(markers : Marker[],
 				closeTagType('p', t_idx);
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
 				result.text += marker.text || "";
-				cur_open['p'] = {
-					kind: marker.kind, min: t_idx, max : t_idx, data: { indent: marker.level || 1 }
-				};
+				try {
+					let level = _levelOrThrow(marker, pushError);
+					cur_open['p'] = {
+						kind: marker.kind, min: t_idx, max : t_idx, data: { indent: level || 1 }
+					};
+				} catch (e) {}
 				break;
 
 				////////////////////////////////////////////////////////////////////////
@@ -447,11 +457,13 @@ function bodyParser(markers : Marker[],
 			case 'qm': // embedded poetry, indent given by marker.level
 				result.text += marker.text || "";
 				closeTagType('q', t_idx);
-				cur_open['q'] = {
-					min: t_idx, max : t_idx,
-					kind: marker.kind,
-					data: { indent: marker.level || 1 }
-				};
+				try {
+					let level = _levelOrThrow(marker, pushError);
+					cur_open['q'] = {
+						min: t_idx, max : t_idx, kind: marker.kind,
+						data: { indent: level || 1 }
+					};
+				} catch (e) {}
 				break;
 			case 'qr': // poetry, right aligned
 			case 'qc': // poetry, center aligned
@@ -479,11 +491,15 @@ function bodyParser(markers : Marker[],
 			case 'li':
 			case 'lim':
 				result.text += marker.text || "";
-				closeTagType('l', t_idx); // close open list elements
+				closeTagType('l', t_idx); // close other list elements
 				closeTagType('p', t_idx); // close paragraphs
-				cur_open['l'] = {
-					min: t_idx, max: t_idx, kind: marker.kind, data: { indent: marker.level || 1 }
-				};
+				closeTagType('t', t_idx); // close tables
+				try {
+					let level = _levelOrThrow(marker, pushError);
+					cur_open['l'] = {
+						min: t_idx, max: t_idx, kind: marker.kind, data: { indent: level || 1 }
+					};
+				} catch (e) {}
 				break;
 			case 'liv':
 				if(marker.closing){
@@ -497,10 +513,28 @@ function bodyParser(markers : Marker[],
 					if(result.text){
 						result.text += marker.text;
 					}
-					cur_open[marker.kind] = {
-						min: t_idx, max: t_idx, kind: marker.kind, data: { column: marker.level || 1 }
-					};
+					try {
+						let level = _levelOrThrow(marker, pushError);
+						cur_open[marker.kind] = {
+							min: t_idx, max: t_idx, kind: marker.kind,
+							data: { column: level || 1 }
+						};
+					} catch (e) {}
 				}
+				break;
+
+				////////////////////////////////////////////////////////////////////////
+				// Table Cells
+			case 'th':
+			case 'thr':
+			case 'tc':
+			case 'tcr':
+				result.text += marker.text || "";
+				closeTagType('t', t_idx);
+				cur_open['t'] = {
+					min: t_idx, max: t_idx, kind: marker.kind,
+					data: { column: marker.level || 1 }
+				};
 				break;
 
 				////////////////////////////////////////////////////////////////////////
@@ -610,4 +644,22 @@ function _assignLeveledData<T>(ld    : LeveledData<T>,
 		level = 1;
 	}
 	ld[level] = value;
+}
+
+/**
+ * Utility wrapper which returns marker.level, unless it is
+ * an is_range object, in which case it pushes and error and throws
+ * an exception
+ */
+function _levelOrThrow(marker    : Marker,
+											 pushError : (m: Marker, err: string   ) => void,
+											) : number | undefined {
+
+	if(marker.level === undefined || typeof marker.level === typeof 1){
+		return marker.level as number | undefined;
+	}
+
+	let message = `Expected integer level for marker ${marker.kind} but got range`;
+	pushError(marker, message);
+	throw new Error(message);
 }

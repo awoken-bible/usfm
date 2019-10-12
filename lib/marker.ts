@@ -11,8 +11,10 @@ export interface Marker {
 	 * IE \mt == \mt1
 	 * Note however in our representation we leave level as undefined if it is
 	 * not specified
+	 * Finally, some tags (eg, \tc for table cell) can have a range specifier
+	 * as their level (in the case of tc, to indicate spanning multiple columns)
 	 */
-	level? : number,
+	level? : number | { is_range: true, start: number, end: number },
 
 	/**
 	 * If set then the marker's kind is prefixed by a '+' character, indicating it
