@@ -105,10 +105,10 @@ to describe the contents of this chapter
               text: 'Verse one text content is here.Followed closely by verse 2.We can even start new paragraphs.',
               styling: [
                 { min:  0, max: 59, kind: 'p' },
-                { min:  0, max: 31, kind: 'v', data: { verse: 1 } },
-                { min: 31, max: 59, kind: 'v', data: { verse: 2 } },
+                { min:  0, max: 31, kind: 'v', verse: 1 },
+                { min: 31, max: 59, kind: 'v', verse: 2 },
                 { min: 59, max: 92, kind: 'p' },
-                { min: 59, max: 92, kind: 'v', data: { verse: 3 } },
+                { min: 59, max: 92, kind: 'v', verse: 3 },
               ],
             }
           },
@@ -118,7 +118,7 @@ to describe the contents of this chapter
             body   : {
               text: 'Next chapter',
               styling: [
-                { min:  0, max: 12, kind: 'v', data: { verse: 1 } },
+                { min:  0, max: 12, kind: 'v', verse: 1 },
               ],
             }
           },
@@ -145,9 +145,9 @@ to describe the contents of this chapter
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: 'Hello World.Centered Text.Right Text.Embedded opening.Embedded content.Embedded closing.Letter opening.No indent.Letter closing.',
         styling: sortStyleBlocks([
-          { kind: 'v', min:  0, max:  37, data: { verse: 1 } },
-          { kind: 'v', min: 37, max:  88, data: { verse: 2 } },
-          { kind: 'v', min: 88, max: 128, data: { verse: 3 } },
+          { kind: 'v', min:  0, max:  37, verse: 1 },
+          { kind: 'v', min: 37, max:  88, verse: 2 },
+          { kind: 'v', min: 88, max: 128, verse: 3 },
 
           { kind: 'p',   min:   0, max:  12 },
           { kind: 'pc',  min:  12, max:  26 },
@@ -195,25 +195,25 @@ to describe the contents of this chapter
           { min:   0, max: 352, kind: 'p' },
           { min: 352, max: 517, kind: 'p' },
 
-          { min:   0, max: 205, kind: 'v', data: { verse: 14 } },
-          { min: 205, max: 352, kind: 'v', data: { verse: 15 } },
-          { min: 352, max: 517, kind: 'v', data: { verse: 16 } },
+          { min:   0, max: 205, kind: 'v', verse: 14 },
+          { min: 205, max: 352, kind: 'v', verse: 15 },
+          { min: 352, max: 517, kind: 'v', verse: 16 },
 
-          { min:  31, max:  59, kind: 'q', data: { indent: 1 } },
-          { min:  59, max:  94, kind: 'q', data: { indent: 2 } },
-          { min:  94, max: 130, kind: 'q', data: { indent: 2 } },
-          { min: 130, max: 156, kind: 'q', data: { indent: 1 } },
-          { min: 156, max: 205, kind: 'q', data: { indent: 2 } },
+          { min:  31, max:  59, kind: 'q', indent: 1 },
+          { min:  59, max:  94, kind: 'q', indent: 2 },
+          { min:  94, max: 130, kind: 'q', indent: 2 },
+          { min: 130, max: 156, kind: 'q', indent: 1 },
+          { min: 156, max: 205, kind: 'q', indent: 2 },
 
-          { min: 205, max: 252, kind: 'q', data: { indent: 1 } },
-          { min: 252, max: 297, kind: 'q', data: { indent: 2 } },
-          { min: 297, max: 322, kind: 'q', data: { indent: 1 } },
-          { min: 322, max: 352, kind: 'q', data: { indent: 2 } },
+          { min: 205, max: 252, kind: 'q', indent: 1 },
+          { min: 252, max: 297, kind: 'q', indent: 2 },
+          { min: 297, max: 322, kind: 'q', indent: 1 },
+          { min: 322, max: 352, kind: 'q', indent: 2 },
 
-          { min: 373, max: 422, kind: 'q', data: { indent: 1 } },
-          { min: 422, max: 453, kind: 'q', data: { indent: 2 } },
-          { min: 453, max: 490, kind: 'q', data: { indent: 1 } },
-          { min: 490, max: 517, kind: 'q', data: { indent: 2 } },
+          { min: 373, max: 422, kind: 'q', indent: 1 },
+          { min: 422, max: 453, kind: 'q', indent: 2 },
+          { min: 453, max: 490, kind: 'q', indent: 1 },
+          { min: 490, max: 517, kind: 'q', indent: 2 },
         ]),
       });
 
@@ -247,20 +247,20 @@ to describe the contents of this chapter
           { min:   0, max:   5, kind: 'qa' },
           { min:  52, max:  56, kind: 'qa' },
 
-          { min:   5, max:  56, kind: 'v',  data: { verse: 1 }  },
-          { min:  56, max:  87, kind: 'v',  data: { verse: 2 }  },
-          { min:  87, max: 130, kind: 'v',  data: { verse: 3 }  },
+          { min:   5, max:  56, kind: 'v',  verse: 1  },
+          { min:  56, max:  87, kind: 'v',  verse: 2  },
+          { min:  87, max: 130, kind: 'v',  verse: 3  },
 
-          { min:  16, max:  27, kind: 'q',  data: { indent: 1 } },
+          { min:  16, max:  27, kind: 'q',  indent: 1 },
           { min:  27, max:  39, kind: 'qr' },
           { min:  39, max:  52, kind: 'qc' },
 
-          { min:  56, max:  71, kind: 'q',  data: { indent: 1 } },
-          { min:  71, max:  79, kind: 'q',  data: { indent: 2 } },
-          { min:  79, max: 102, kind: 'qm', data: { indent: 3 } },
+          { min:  56, max:  71, kind: 'q',  indent: 1 },
+          { min:  71, max:  79, kind: 'q',  indent: 2 },
+          { min:  79, max: 102, kind: 'qm', indent: 3 },
 
-          { min: 102, max: 111, kind: 'q',  data: { indent: 1 } },
-          { min: 111, max: 130, kind: 'q',  data: { indent: 2 } },
+          { min: 102, max: 111, kind: 'q',  indent: 1 },
+          { min: 111, max: 130, kind: 'q',  indent: 2 },
 
           { min: 107, max: 109, kind: 'qac' },
           { min: 124, max: 130, kind: 'qs', },
@@ -290,61 +290,61 @@ to describe the contents of this chapter
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: "This is the list of the administrators of the tribes of Israel: ReubenEliezer son of Zichri SimeonShephatiah son of Maacah LeviHashabiah son of Kemuel AaronZadok JudahElihu, one of King David's brothers IssacharOmri son of Michael ZebulunIshmaiah son of Obadiah NaphtaliJeremoth son of Azriel EphraimHoshea son of Azaziah West ManassehJoel son of Pedaiah East ManassehIddo son of Zechariah BenjaminJaasiel son of Abner DanAzarel son of JerohamThis was the list of the administrators of the tribes of Israel.",
         styling: sortStyleBlocks([
-          { kind: 'v',   min:   0, max: 507, data: { is_range: true, start: 16, end: 22 } },
+          { kind: 'v',   min:   0, max: 507, verse: { is_range: true, start: 16, end: 22 } },
 
           { kind: 'lh',  min:   0, max:  63 },
 
-          { kind: 'li',  min:  63, max:  91, data: { indent: 1 } },
+          { kind: 'li',  min:  63, max:  91, indent: 1 },
           { kind: 'lik', min:  63, max:  70 },
-          { kind: 'liv', min:  70, max:  91, data: { column: 1 } },
+          { kind: 'liv', min:  70, max:  91, column: 1 },
 
-          { kind: 'li',  min:  91, max: 122, data: { indent: 1 } },
+          { kind: 'li',  min:  91, max: 122, indent: 1 },
           { kind: 'lik', min:  91, max:  98 },
-          { kind: 'liv', min:  98, max: 122, data: { column: 1 } },
+          { kind: 'liv', min:  98, max: 122, column: 1 },
 
-          { kind: 'li',  min: 122, max: 150, data: { indent: 1 } },
+          { kind: 'li',  min: 122, max: 150, indent: 1 },
           { kind: 'lik', min: 122, max: 127 },
-          { kind: 'liv', min: 127, max: 150, data: { column: 1 } },
+          { kind: 'liv', min: 127, max: 150, column: 1 },
 
-          { kind: 'li',  min: 150, max: 161, data: { indent: 1 } },
+          { kind: 'li',  min: 150, max: 161, indent: 1 },
           { kind: 'lik', min: 150, max: 156 },
-          { kind: 'liv', min: 156, max: 161, data: { column: 1 } },
+          { kind: 'liv', min: 156, max: 161, column: 1 },
 
-          { kind: 'li',  min: 161, max: 202, data: { indent: 1 } },
+          { kind: 'li',  min: 161, max: 202, indent: 1 },
           { kind: 'lik', min: 161, max: 167 },
-          { kind: 'liv', min: 167, max: 202, data: { column: 1 } },
+          { kind: 'liv', min: 167, max: 202, column: 1 },
 
-          { kind: 'li',  min: 202, max: 230, data: { indent: 1 } },
+          { kind: 'li',  min: 202, max: 230, indent: 1 },
           { kind: 'lik', min: 202, max: 211 },
-          { kind: 'liv', min: 211, max: 230, data: { column: 1 } },
+          { kind: 'liv', min: 211, max: 230, column: 1 },
 
-          { kind: 'li',  min: 230, max: 261, data: { indent: 1 } },
+          { kind: 'li',  min: 230, max: 261, indent: 1 },
           { kind: 'lik', min: 230, max: 238 },
-          { kind: 'liv', min: 238, max: 261, data: { column: 1 } },
+          { kind: 'liv', min: 238, max: 261, column: 1 },
 
-          { kind: 'li',  min: 261, max: 292, data: { indent: 1 } },
+          { kind: 'li',  min: 261, max: 292, indent: 1 },
           { kind: 'lik', min: 261, max: 270 },
-          { kind: 'liv', min: 270, max: 292, data: { column: 1 } },
+          { kind: 'liv', min: 270, max: 292, column: 1 },
 
-          { kind: 'li',  min: 292, max: 321, data: { indent: 1 } },
+          { kind: 'li',  min: 292, max: 321, indent: 1 },
           { kind: 'lik', min: 292, max: 300 },
-          { kind: 'liv', min: 300, max: 321, data: { column: 1 } },
+          { kind: 'liv', min: 300, max: 321, column: 1 },
 
-          { kind: 'li',  min: 321, max: 354, data: { indent: 1 } },
+          { kind: 'li',  min: 321, max: 354, indent: 1 },
           { kind: 'lik', min: 321, max: 335 },
-          { kind: 'liv', min: 335, max: 354, data: { column: 1 } },
+          { kind: 'liv', min: 335, max: 354, column: 1 },
 
-          { kind: 'li',  min: 354, max: 389, data: { indent: 1 } },
+          { kind: 'li',  min: 354, max: 389, indent: 1 },
           { kind: 'lik', min: 354, max: 368 },
-          { kind: 'liv', min: 368, max: 389, data: { column: 1 } },
+          { kind: 'liv', min: 368, max: 389, column: 1 },
 
-          { kind: 'li',  min: 389, max: 418, data: { indent: 1 } },
+          { kind: 'li',  min: 389, max: 418, indent: 1 },
           { kind: 'lik', min: 389, max: 398 },
-          { kind: 'liv', min: 398, max: 418, data: { column: 1 } },
+          { kind: 'liv', min: 398, max: 418, column: 1 },
 
-          { kind: 'li',  min: 418, max: 443, data: { indent: 1 } },
+          { kind: 'li',  min: 418, max: 443, indent: 1 },
           { kind: 'lik', min: 418, max: 422 },
-          { kind: 'liv', min: 422, max: 443, data: { column: 1 } },
+          { kind: 'liv', min: 422, max: 443, column: 1 },
 
           { kind: 'lf',  min: 443, max: 507 },
         ]),
@@ -378,32 +378,32 @@ to describe the contents of this chapter
 
           { kind: 'pm', min:   0, max:  30 },
 
-          { kind: 'v',    min:  30, max:  63, data: { verse:  8 } },
-          { kind: 'lim',  min:  30, max:  63, data: { indent: 1 } },
+          { kind: 'v',    min:  30, max:  63, verse: 8 },
+          { kind: 'lim',  min:  30, max:  63, indent: 1 },
           { kind: 'litl', min:  57, max:  63 },
 
-          { kind: 'v',    min:  63, max:  82, data: { verse:  9 } },
-          { kind: 'lim',  min:  63, max:  82, data: { indent: 1 } },
+          { kind: 'v',    min:  63, max:  82, verse: 9 },
+          { kind: 'lim',  min:  63, max:  82, indent: 1 },
           { kind: 'litl', min:  78, max:  82 },
 
-          { kind: 'v',    min:  82, max:  95, data: { verse: 10 } },
-          { kind: 'lim',  min:  82, max:  95, data: { indent: 1 } },
+          { kind: 'v',    min:  82, max:  95, verse: 10 },
+          { kind: 'lim',  min:  82, max:  95, indent: 1 },
           { kind: 'litl', min:  91, max:  95 },
 
-          { kind: 'v',    min:  95, max: 155, data: { verse: 11 } },
-          { kind: 'lim',  min:  95, max: 155, data: { indent: 1 } },
+          { kind: 'v',    min:  95, max: 155, verse: 11 },
+          { kind: 'lim',  min:  95, max: 155, indent: 1 },
           { kind: 'litl', min: 149, max: 155 },
 
-          { kind: 'v',    min: 155, max: 170, data: { verse: 12 } },
-          { kind: 'lim',  min: 155, max: 170, data: { indent: 1 } },
+          { kind: 'v',    min: 155, max: 170, verse: 12 },
+          { kind: 'lim',  min: 155, max: 170, indent: 1 },
           { kind: 'litl', min: 164, max: 170 },
 
-          { kind: 'v',    min: 170, max: 184, data: { verse: 13 } },
-          { kind: 'lim',  min: 170, max: 184, data: { indent: 1 } },
+          { kind: 'v',    min: 170, max: 184, verse: 13 },
+          { kind: 'lim',  min: 170, max: 184, indent: 1 },
           { kind: 'litl', min: 180, max: 184 },
 
-          { kind: 'v',    min: 184, max: 199, data: { verse: 14 } },
-          { kind: 'lim',  min: 184, max: 199, data: { indent: 1 } },
+          { kind: 'v',    min: 184, max: 199, verse: 14 },
+          { kind: 'lim',  min: 184, max: 199, indent: 1 },
           { kind: 'litl', min: 195, max: 199 },
         ]),
       });
@@ -428,48 +428,48 @@ to describe the contents of this chapter
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: "They presented their offerings in the following order:DayTribeLeader1stJudahNahshon son of Amminadab2ndIssacharNethanel son of Zuar3rdZebulunEliab son of Helon4thReubenElizur son of Shedeur5thSimeonShelumiel son of ZurishaddaiSpanning textGoesHereParagraph should close table",
         styling: sortStyleBlocks([
-          { kind: 'v',    min:   0, max: 247, data: { is_range: true, start: 12, end: 83 } },
-          { kind: 'v',    min: 247, max: 275, data: { verse: 84 } },
+          { kind: 'v',    min:   0, max: 247, verse: { is_range: true, start: 12, end: 83 } },
+          { kind: 'v',    min: 247, max: 275, verse: 84 },
 
           { kind: 'p',    min:   0, max:  54 },
           { kind: 'p',    min: 247, max: 275 },
 
           { kind: 'tr',   min:  54, max:  68 },
-          { kind: 'th',   min:  54, max:  57, data: { column: 1 } },
-          { kind: 'thr',  min:  57, max:  62, data: { column: 2 } },
-          { kind: 'th',   min:  62, max:  68, data: { column: 3 } },
+          { kind: 'th',   min:  54, max:  57, column: 1 },
+          { kind: 'thr',  min:  57, max:  62, column: 2 },
+          { kind: 'th',   min:  62, max:  68, column: 3 },
 
           { kind: 'tr',   min:  68, max: 100 },
-          { kind: 'tc',   min:  68, max:  71, data: { column: 1 } },
-          { kind: 'tcr',  min:  71, max:  76, data: { column: 2 } },
-          { kind: 'tc',   min:  76, max: 100, data: { column: 3 } },
+          { kind: 'tc',   min:  68, max:  71, column: 1 },
+          { kind: 'tcr',  min:  71, max:  76, column: 2 },
+          { kind: 'tc',   min:  76, max: 100, column: 3 },
 
           { kind: 'tr',   min: 100, max: 131 },
-          { kind: 'tc',   min: 100, max: 103, data: { column: 1 } },
-          { kind: 'tcr',  min: 103, max: 111, data: { column: 2 } },
-          { kind: 'tc',   min: 111, max: 131, data: { column: 3 } },
+          { kind: 'tc',   min: 100, max: 103, column: 1 },
+          { kind: 'tcr',  min: 103, max: 111, column: 2 },
+          { kind: 'tc',   min: 111, max: 131, column: 3 },
 
           { kind: 'tr',   min: 131, max: 159 },
-          { kind: 'tc',   min: 131, max: 134, data: { column: 1 } },
-          { kind: 'tcr',  min: 134, max: 141, data: { column: 2 } },
-          { kind: 'tc',   min: 141, max: 159, data: { column: 3 } },
+          { kind: 'tc',   min: 131, max: 134, column: 1 },
+          { kind: 'tcr',  min: 134, max: 141, column: 2 },
+          { kind: 'tc',   min: 141, max: 159, column: 3 },
 
           { kind: 'tr',   min: 159, max: 189 },
-          { kind: 'tc',   min: 159, max: 162, data: { column: 1 } },
-          { kind: 'tcr',  min: 162, max: 168, data: { column: 2 } },
-          { kind: 'tc',   min: 168, max: 189, data: { column: 3 } },
+          { kind: 'tc',   min: 159, max: 162, column: 1 },
+          { kind: 'tcr',  min: 162, max: 168, column: 2 },
+          { kind: 'tc',   min: 168, max: 189, column: 3 },
 
           { kind: 'tr',   min: 189, max: 226 },
-          { kind: 'tc',   min: 189, max: 192, data: { column: 1 } },
-          { kind: 'tcr',  min: 192, max: 198, data: { column: 2 } },
-          { kind: 'tc',   min: 198, max: 226, data: { column: 3 } },
+          { kind: 'tc',   min: 189, max: 192, column: 1 },
+          { kind: 'tcr',  min: 192, max: 198, column: 2 },
+          { kind: 'tc',   min: 198, max: 226, column: 3 },
 
           { kind: 'tr',   min: 226, max: 239 },
-          { kind: 'tc',   min: 226, max: 239, data: { column: { is_range: true, start: 1, end: 3 } } },
+          { kind: 'tc',   min: 226, max: 239, column: { is_range: true, start: 1, end: 3 } },
 
           { kind: 'tr',   min: 239, max: 247 },
-          { kind: 'tc',   min: 239, max: 243, data: { column: 1 } },
-          { kind: 'tc',   min: 243, max: 247, data: { column: { is_range: true, start: 2, end: 3 } } },
+          { kind: 'tc',   min: 239, max: 243, column: 1 },
+          { kind: 'tc',   min: 243, max: 247, column: { is_range: true, start: 2, end: 3 } },
         ]),
       });
 

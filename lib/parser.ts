@@ -70,21 +70,13 @@ interface StyleBlockNoData extends StyleBlockBase{
 interface StyleBlockVerse extends StyleBlockBase{
 	kind : "v";
 
-	data : {
-		verse : number,
-	} | {
-		is_range : true,
-		start    : number,
-		end      : number,
-	};
+	verse : number | { is_range: true, start: number, end: number };
 };
 
 interface StyleBlockIndented extends StyleBlockBase {
 	kind : "q" | "qm" | "pi" | "ph" | "li" | "lim";
 
-	data : {
-		indent : number,
-	},
+	indent : number,
 }
 
 interface StyleBlockColumn extends StyleBlockBase {
@@ -94,9 +86,8 @@ interface StyleBlockColumn extends StyleBlockBase {
 	// Represents elements with an associated column number,
 	// eg in tables or key/value lists
 	kind: "liv" | "th" | "thr" | "tc" | "tcr";
-	data: {
-		column: number | { is_range: true, start: number, end: number },
-	}
+
+	column: number | { is_range: true, start: number, end: number },
 }
 
 type StyleBlock = (StyleBlockNoData    |
@@ -420,7 +411,7 @@ function bodyParser(markers : Marker[],
 				try {
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['p'] = {
-						kind: marker.kind, min: t_idx, max : t_idx, data: { indent: level || 1 }
+						kind: marker.kind, min: t_idx, max : t_idx, indent: level || 1
 					};
 				} catch (e) {}
 				break;
@@ -435,16 +426,16 @@ function bodyParser(markers : Marker[],
 				} else if (marker.data.match(/^\d+$/)) {
 					cur_open['v'] = {
 						kind: 'v', min: t_idx, max : t_idx,
-						data: { verse: parseInt(marker.data) },
+						verse: parseInt(marker.data),
 					};
 				} else if (marker.data.match(/^\d+-\d+$/)) {
 					let parts = marker.data.split('-');
 					cur_open['v'] = {
 						kind: 'v', min: t_idx, max : t_idx,
-						data: { is_range : true,
-										start    : parseInt(parts[0]),
-										end      : parseInt(parts[1])
-									},
+						verse: { is_range : true,
+										 start    : parseInt(parts[0]),
+										 end      : parseInt(parts[1])
+									 },
 					};
 				} else {
 					pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
@@ -460,8 +451,7 @@ function bodyParser(markers : Marker[],
 				try {
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['q'] = {
-						min: t_idx, max : t_idx, kind: marker.kind,
-						data: { indent: level || 1 }
+						min: t_idx, max : t_idx, kind: marker.kind, indent: level || 1,
 					};
 				} catch (e) {}
 				break;
@@ -497,7 +487,7 @@ function bodyParser(markers : Marker[],
 				try {
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['l'] = {
-						min: t_idx, max: t_idx, kind: marker.kind, data: { indent: level || 1 }
+						min: t_idx, max: t_idx, kind: marker.kind, indent: level || 1,
 					};
 				} catch (e) {}
 				break;
@@ -516,8 +506,7 @@ function bodyParser(markers : Marker[],
 					try {
 						let level = _levelOrThrow(marker, pushError);
 						cur_open[marker.kind] = {
-							min: t_idx, max: t_idx, kind: marker.kind,
-							data: { column: level || 1 }
+							min: t_idx, max: t_idx, kind: marker.kind, column: level || 1,
 						};
 					} catch (e) {}
 				}
@@ -532,8 +521,7 @@ function bodyParser(markers : Marker[],
 				result.text += marker.text || "";
 				closeTagType('t', t_idx);
 				cur_open['t'] = {
-					min: t_idx, max: t_idx, kind: marker.kind,
-					data: { column: marker.level || 1 }
+					min: t_idx, max: t_idx, kind: marker.kind, column: marker.level || 1,
 				};
 				break;
 
