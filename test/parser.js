@@ -292,6 +292,9 @@ to describe the contents of this chapter
         styling: sortStyleBlocks([
           { kind: 'v',   min:   0, max: 507, verse: { is_range: true, start: 16, end: 22 } },
 
+          { kind: 'list',       min:  0, max: 507, is_virtual: true },
+          { kind: 'list_items', min: 63, max: 443, is_virtual: true },
+
           { kind: 'lh',  min:   0, max:  63 },
 
           { kind: 'li',  min:  63, max:  91, indent: 1 },
@@ -378,6 +381,9 @@ to describe the contents of this chapter
 
           { kind: 'pm', min:   0, max:  30 },
 
+          { kind: 'list',       min:  30, max: 199, is_virtual: true },
+          { kind: 'list_items', min:  30, max: 199, is_virtual: true },
+
           { kind: 'v',    min:  30, max:  63, verse: 8 },
           { kind: 'lim',  min:  30, max:  63, indent: 1 },
           { kind: 'litl', min:  57, max:  63 },
@@ -433,6 +439,8 @@ to describe the contents of this chapter
 
           { kind: 'p',    min:   0, max:  54 },
           { kind: 'p',    min: 247, max: 275 },
+
+          { kind: 'table', min:  54, max:  247, is_virtual: true },
 
           { kind: 'tr',   min:  54, max:  68 },
           { kind: 'th',   min:  54, max:  57, column: 1 },
