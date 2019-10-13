@@ -1,7 +1,9 @@
 import { Marker } from './marker';
 import { lexer  } from './lexer';
+import { ParserError, StyleBlockBase } from './parser_types';
+import { StyleBlockFootnote } from './parser_footnotes';
 
-interface TableOfContentsEntry {
+export interface TableOfContentsEntry {
 	/** toc1 - eg: The Gospel According to Matthew*/
 	long_text?: string,
 
@@ -12,35 +14,12 @@ interface TableOfContentsEntry {
 	abbreviation?: string,
 };
 
-
 /**
  * Represents set of data for markers which can be used in multiple
  * levels, eg, \mt1, \mt2, etc
  */
 type LeveledData<T> = {
 	[ index: number ] : T;
-};
-
-/**
- * Represents an error message produced by the parser
- */
-type ParserError = {
-	message : string,
-	marker  : Marker,
-};
-
-interface StyleBlockBase {
-	/**
-	 * Minimum extent of the styling as expressed in "gap index" (gap 0 is before
-	 * first character, gap 1 is after first character, thus a StyleBlock from 0
-	 * to 1 applies to just the first character)
-	 */
-	min : number;
-
-	/*
-	 * Maximum extent of the styling as expressed in "gap index"
-	 */
-	max : number;
 };
 
 /**
@@ -88,40 +67,6 @@ interface StyleBlockColumn extends StyleBlockBase {
 	kind: "liv" | "th" | "thr" | "tc" | "tcr";
 
 	column: number | { is_range: true, start: number, end: number },
-}
-
-interface StyleBlockFootnoteReference extends StyleBlockBase {
-	kind: 'fr';
-	chapter: number;
-	verse  : number | { is_range: true, start: number, end: number };
-};
-
-interface StyleBlockFootnoteVerse extends StyleBlockBase {
-	kind: 'fv';
-	verse: number | { is_range: true, start: number, end: number };
-};
-
-interface StyleBlockFootnoteNoData extends StyleBlockBase {
-	kind: 'fq' | 'fqa' | 'fk' | 'fl' | 'fw' | 'fp' | 'fv' | 'ft' | 'fdc' | 'fm';
-};
-
-type StyleBlockFootnoteContent = ( StyleBlockFootnoteReference |
-																	 StyleBlockFootnoteVerse |
-																	 StyleBlockFootnoteNoData
-																 );
-
-interface StyleBlockFootnote extends StyleBlockBase {
-	// Either standard foot note, or "end note" (rendered at end of chapter)
-	kind: 'f' | 'fe',
-
-	// The caller string to use to link to the footnote
-	caller: string,
-
-	// The content of the footnote
-	text: string,
-
-	// Styling applied to the text of the footnote
-	styling: StyleBlockFootnoteContent[],
 }
 
 interface StyleBlockVirtual extends StyleBlockBase {
