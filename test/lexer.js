@@ -67,11 +67,16 @@ describe("lexer", () => {
     ]);
 
     // missing mandatory whitespace after data
-    expect(() => Array.from(lexer("\\c 1\\v 3 hello"))).to.throw();
-    expect(      Array.from(lexer("\\c 1\n\\v 3 hello"))).to.deep.equal([
+    // Note I think the first test case here without whitespace should throw
+    // however we see examples of missing whitespace in real USFM, eg "\fv 38\fv*"
+    // within: https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fv-fv
+    result = [
       { kind: 'c', data: '1' },
       { kind: 'v', data: '3', text: 'hello' },
-    ]);
+    ];
+    expect(Array.from(lexer("\\c 1\\v 3 hello"))).to.deep.equal(result);
+    expect(Array.from(lexer("\\c 1\n\\v 3 hello"))).to.deep.equal(result);
+    expect(Array.from(lexer("\\c 1 \\v 3 hello"))).to.deep.equal(result);
 
     // verse marker can have range as data value
     expect(Array.from(lexer("\\v 10-11 testing"))).to.deep.equal([

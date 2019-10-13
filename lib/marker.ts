@@ -1,3 +1,5 @@
+export type IntOrRange = number | { is_range: true, start: number, end: number };
+
 export interface Marker {
 	/**
 	 * The marker identifier, eg 'c' for \c, 'mt' for \mt
@@ -14,7 +16,7 @@ export interface Marker {
 	 * Finally, some tags (eg, \tc for table cell) can have a range specifier
 	 * as their level (in the case of tc, to indicate spanning multiple columns)
 	 */
-	level? : number | { is_range: true, start: number, end: number },
+	level? : IntOrRange,
 
 	/**
 	 * If set then the marker's kind is prefixed by a '+' character, indicating it
@@ -80,15 +82,21 @@ const _markerDataRegexp : {
 	'c'   : _regexpInt,
 	'sts' : _regexpInt,
 
-	// Usually just a single int, however due to inconsistant versifications it
-	// can occasionally be a range (eg: 28-29) where two verses are combined into
-	// a single flowing sentence
-	'v'   : /^[0-9]+(-[0-9]+)?/,
+	/////////////////////////////////////////////////////////////////////
+	//
+	// Note: You MUST include the leading ^ to ensure lexer works correctly!
+	//
+	/////////////////////////////////////////////////////////////////////
+
+	// Verse specifiers - usually just a single int, however due to inconsistant
+	// versifications it can occasionally be a range (eg: 28-29) where two verses
+	// are combined into a single flowing sentence
+	'v'   : /^[0-9]+(-[0-9]+)?/, // standard verse
+	'fv'  : /^[0-9]+(-[0-9]+)?/, // verse specifier inside footnote
 
 	// footnote chapter/verse reference, eg, 12:3, or 12:3-4
-	'fr'  : /^\d+[:\.v]\d+(-[0-9]+)?/,
-
-	// you MUST include the leading ^ to ensure lexer works correctly!
+	// Note the potential for a trailing :, eg, in GNT (https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fr)
+	'fr'  : /^\d+[:\.v]\d+(-[0-9]+)?:?/,
 
 	// id -> followed by book id, eg, GEN
 	'id'  : /^[A-Za-z1-9]{3}/,
@@ -100,7 +108,8 @@ const _markerDataRegexp : {
 	// + (footnote number is generated)
 	// - (footnote is not used)
 	// . (a custom character used to reference the footnote)
-	'f'   : /^[\+\-a-zA-Z0-9]/,
+	'f'   : /^[\+\-a-zA-Z0-9]/, // standard footnote
+	'fe'  : /^[\+\-a-zA-Z0-9]/, // endnote footnote (in books, rendered at end of chapter rather than bottom of page)
 };
 
 const _marker_types : {
