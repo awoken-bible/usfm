@@ -6,6 +6,6 @@
     "outDir": "./dist",
     "strict": true
   },
-  "include": ["src"],
+  "include": ["lib"],
   "exclude": ["node_modules", "test"]
 }
