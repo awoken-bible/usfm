@@ -1,5 +1,5 @@
 import { Marker } from './marker';
-import { StyleBlockBase, parseIntOrRange, PushErrorFunction } from './parser_utils';
+import { StyleBlockBase, parseIntOrRange, PushErrorFunction, sortStyleBlocks } from './parser_utils';
 
 export interface StyleBlockFootnoteReference extends StyleBlockBase {
 	kind: 'fr';
@@ -117,6 +117,18 @@ export function parseFootnote(markers: Marker[],
 				// Paired markers
 			case 'fdc':
 			case 'fm':
+				result.text += marker.text || "";
+				if(marker.closing){
+					if(cur_open[marker.kind] === undefined){
+						pushError(marker, `Attempt to close paired makrer of kind ${marker.kind}, but the environment is not currently open`);
+					} else {
+						closeTagType(marker.kind, t_idx);
+					}
+				} else {
+					cur_open[marker.kind] = {
+						min: t_idx, max: t_idx, kind: marker.kind
+					};
+				}
 				break;
 
 
@@ -129,20 +141,14 @@ export function parseFootnote(markers: Marker[],
 					pushError(marker, "Expected data to be associated with fr marker");
 					break;
 				}
+				let matches = marker.data.match(/^(\d+)[:\.v](\d+(-[0-9]+)?):?$/);
 
-				let parts = marker.data.split(':');
-				if(parts.length !== 2){
-					pushError(marker, "Expected fr to have data of the form CHAPTER:VERSE");
-					break;
+				if(!matches){
+					throw new Error("CODE ERROR - fr marker data does not match expected format - please alter the regex in marker.ts accrodingly");
 				}
 
-				let chapter = parseInt       (parts[0]);
-				let verse   = parseIntOrRange(parts[1]);
-
-				if(verse === undefined){
-					pushError(marker, `Expected fr's verse data to be single int, or integer range, got: ${parts[1]}`);
-					break;
-				}
+				let chapter = parseInt       (matches[1]);
+				let verse   = parseIntOrRange(matches[2])!;
 
 				cur_open['f'] = {
 					kind: 'fr', min: t_idx, max: t_idx, chapter: chapter, verse: verse
@@ -150,6 +156,30 @@ export function parseFootnote(markers: Marker[],
 				break;
 
 			case 'fv':
+				result.text += marker.text || "";
+				if(marker.closing){
+					if(cur_open[marker.kind] === undefined){
+						pushError(marker, `Attempt to close paired makrer of kind ${marker.kind}, but the environment is not currently open`);
+					} else {
+						closeTagType(marker.kind, t_idx);
+					}
+				} else {
+					if(marker.text){
+						pushError(marker, "fv markers are not expected to have any text content, it will be skipped");
+					}
+					if(marker.data === undefined){
+						pushError(marker, "fv markers are expected to have associated verse number as data");
+						break;
+					}
+					let verse = parseIntOrRange(marker.data);
+					if(verse === undefined){
+						pushError(marker, "Unexpected format for data for fv marker, wanted int or int range, got: " + marker.data);
+						break;
+					}
+					cur_open[marker.kind] = {
+						kind: marker.kind, min: t_idx, max: t_idx, verse: verse
+					};
+				}
 				break;
 			default:
 				pushError(marker, "Skipping unexpected marker kind within footnote context, got: " + marker.kind);
@@ -168,6 +198,8 @@ export function parseFootnote(markers: Marker[],
 	// Gather text outside of the footnote, but before the next marker
 	let next_text : string = (markers[m_idx].text || "");
 	if(next_text.length){ next_text = " " + next_text; }
+
+	sortStyleBlocks(result.styling);
 
 	return [ m_idx, result, next_text ];
 }

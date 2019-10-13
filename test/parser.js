@@ -4,12 +4,14 @@ const chai     = require('chai');
 const rewire   = require('rewire');
 const expect   = chai.expect;
 
-const { parse } = require('../lib/parser.ts');
-const lexer     = require('../lib/lexer.ts').default;
+const { parse }       = require('../lib/parser.ts');
+const lexer           = require('../lib/lexer.ts').default;
+const sortStyleBlocks = require('../lib/parser_utils.ts').sortStyleBlocks;
 
 const __parser__      = rewire('../lib/parser.ts');
 const bodyParser      = __parser__.__get__('bodyParser');
-const sortStyleBlocks = __parser__.__get__('_sortStyleBlocks');
+
+
 
 let text;
 
@@ -522,7 +524,61 @@ to describe the contents of this chapter
         ],
       });
 
+      // https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fr
+      text = `\\p
+              \\v 37 On the last and most important day of the festival Jesus stood up and said in a loud voice, “Whoever is thirsty should come to me, and
+              \\v 38 whoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’” \\f + \\fr 7.38: \\ft Jesus' words in verses 37-38 may be translated: \\fqa “Whoever is thirsty should come to me and drink. \\fv 38\\fv* As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”\\f*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'On the last and most important day of the festival Jesus stood up and said in a loud voice, “Whoever is thirsty should come to me, andwhoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’”',
+        styling: sortStyleBlocks([
+          { kind: 'p', min:   0, max: 254 },
+          { kind: 'v', min:   0, max: 134, verse: 37 },
+          { kind: 'v', min: 134, max: 254, verse: 38 },
 
+          { kind: 'f', min: 254, max: 254, caller: '+',
+            text: `Jesus' words in verses 37-38 may be translated:“Whoever is thirsty should come to me and drink.As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”`,
+            styling: [
+              { kind: 'ft',  min:   0, max:  47 },
+              { kind: 'fr',  min:   0, max:   0, chapter: 7, verse: 38 },
+              { kind: 'fqa', min:  47, max: 202 },
+              { kind: 'fv',  min:  95, max:  95, verse: 38},
+            ],
+          },
+        ])
+      });
+
+      // Adapted: https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fk
+      text = `\\p
+              \\v 20 Adam \\fe + \\fr 3.20: \\fk Adam: \\ft This name in Hebrew means “all human beings.”\\fe* named his wife Eve, \\f + \\fr 3.20: \\fk Eve: \\ft This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”\\f* because she was the mother of all human beings.
+              \\v 21 And the Lord God made clothes out of animal skins for Adam and his wife, and he clothed them.`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: `Adam named his wife Eve, because she was the mother of all human beings.And the Lord God made clothes out of animal skins for Adam and his wife, and he clothed them.`,
+        styling: [
+          { kind: 'p', min:   0, max: 165 },
+          { kind: 'v', min:   0, max:  72, verse: 20 },
+
+          { kind: 'fe', min: 4, max: 4, caller: '+',
+            text: `Adam:This name in Hebrew means “all human beings.”`,
+            styling: [
+              { kind: 'fk', min:   0, max:   5 },
+              { kind: 'fr', min:   0, max:   0, chapter: 3, verse: 20 },
+              { kind: 'ft', min:   5, max:  50 },
+            ],
+          },
+
+          { kind: 'f', min: 24, max: 24, caller: '+',
+            text: `Eve:This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”`,
+            styling: [
+              { kind: 'fk', min:   0, max:   4 },
+              { kind: 'fr', min:   0, max:   0, chapter: 3, verse: 20 },
+              { kind: 'ft', min:   4, max: 114 },
+            ],
+          },
+
+          { kind: 'v', min:  72, max: 165, verse: 21 },
+        ],
+      });
     });
   });
 });

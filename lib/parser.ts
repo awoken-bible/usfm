@@ -1,6 +1,6 @@
 import { Marker, IntOrRange } from './marker';
 import { lexer  } from './lexer';
-import { ParserError, StyleBlockBase, parseIntOrRange } from './parser_utils';
+import { ParserError, StyleBlockBase, parseIntOrRange, sortStyleBlocks } from './parser_utils';
 import { StyleBlockFootnote, parseFootnote } from './parser_footnotes';
 
 export interface TableOfContentsEntry {
@@ -626,28 +626,9 @@ function bodyParser(markers : Marker[],
 		result.styling.push(cur_open[k]);
 	}
 
-	_sortStyleBlocks(result.styling);
+	sortStyleBlocks(result.styling);
 	return result;
 }
-
-function _sortStyleBlocks(styling : StyleBlock[]) : StyleBlock[] {
-	styling.sort((a,b) => {
-		if(a.min == b.min){
-			if(b.max == a.max){
-				// :TODO: this isn't really nessacery, except for ensuring fully
-				// consistant sort order for unit tests
-				// (without this blocks with same min and max are indistinguishable,
-				//  so sorting depends on input order)
-				return a.kind.localeCompare(b.kind);
-			} else {
-				return b.max - a.max;
-			}
-		}
-		return a.min - b.min;
-	});
-	return styling;
-}
-
 
 function _assignTocValue(toc    : TableOfContentsEntry,
 												 marker : Marker,

@@ -43,3 +43,22 @@ export function parseIntOrRange(str: string) : IntOrRange | undefined{
 		return undefined;
 	}
 }
+
+
+export function sortStyleBlocks<T extends StyleBlockBase & { kind: string }>(styling : T[]) : T[] {
+	styling.sort((a,b) => {
+		if(a.min === b.min){
+			if(b.max == a.max){
+				// :TODO: this isn't really nessacery, except for ensuring fully
+				// consistant sort order for unit tests
+				// (without this blocks with same min and max are indistinguishable,
+				//  so sorting depends on input order)
+				return a.kind.localeCompare(b.kind);
+			} else {
+				return b.max - a.max;
+			}
+		}
+		return a.min - b.min;
+	});
+	return styling;
+}

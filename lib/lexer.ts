@@ -112,6 +112,14 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 				yield emit();
 				break;
 			}
+
+			if(text.charAt(i) === '\\'){
+				// then there is no whitespace after the marker's data as, we
+				// immediately hit another marker, skip rest of loop body
+				yield emit();
+				continue;
+			}
+
 			if(!isWhitespace(text.charAt(i))){
 				throw new Error("Expected mandatory whitespace after marker data at position " + i);
 			}

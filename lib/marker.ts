@@ -95,7 +95,8 @@ const _markerDataRegexp : {
 	'fv'  : /^[0-9]+(-[0-9]+)?/, // verse specifier inside footnote
 
 	// footnote chapter/verse reference, eg, 12:3, or 12:3-4
-	'fr'  : /^\d+[:\.v]\d+(-[0-9]+)?/,
+	// Note the potential for a trailing :, eg, in GNT (https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fr)
+	'fr'  : /^\d+[:\.v]\d+(-[0-9]+)?:?/,
 
 	// id -> followed by book id, eg, GEN
 	'id'  : /^[A-Za-z1-9]{3}/,
