@@ -1,3 +1,4 @@
+import { Marker, IntOrRange } from './marker';
 
 /**
  * Represents an error message produced by the parser
@@ -23,3 +24,22 @@ export interface StyleBlockBase {
 	 */
 	max : number;
 };
+
+export type PushErrorFunction = (marker : Marker, message : string) => void;
+
+/**
+ * Parses an IntOrRange type
+ */
+export function parseIntOrRange(str: string) : IntOrRange | undefined{
+	if (str.match(/^\d+$/)) {
+		return parseInt(str);
+	} else if (str.match(/^\d+-\d+$/)) {
+		let parts = str.split('-');
+		return  { is_range : true,
+							start    : parseInt(parts[0]),
+							end      : parseInt(parts[1]),
+						};
+	} else {
+		return undefined;
+	}
+}

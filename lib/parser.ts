@@ -1,7 +1,7 @@
-import { Marker } from './marker';
+import { Marker, IntOrRange } from './marker';
 import { lexer  } from './lexer';
-import { ParserError, StyleBlockBase } from './parser_types';
-import { StyleBlockFootnote } from './parser_footnotes';
+import { ParserError, StyleBlockBase, parseIntOrRange } from './parser_utils';
+import { StyleBlockFootnote, parseFootnote } from './parser_footnotes';
 
 export interface TableOfContentsEntry {
 	/** toc1 - eg: The Gospel According to Matthew*/
@@ -49,7 +49,7 @@ interface StyleBlockNoData extends StyleBlockBase{
 interface StyleBlockVerse extends StyleBlockBase{
 	kind : "v";
 
-	verse : number | { is_range: true, start: number, end: number };
+	verse : IntOrRange;
 };
 
 interface StyleBlockIndented extends StyleBlockBase {
@@ -66,7 +66,7 @@ interface StyleBlockColumn extends StyleBlockBase {
 	// eg in tables or key/value lists
 	kind: "liv" | "th" | "thr" | "tc" | "tcr";
 
-	column: number | { is_range: true, start: number, end: number },
+	column: IntOrRange,
 }
 
 interface StyleBlockVirtual extends StyleBlockBase {
@@ -287,7 +287,7 @@ export function parse(text: string) : ParseResultBook {
 	}
 
 	//////////////////////////////
-	// Actually parse the chapter's
+	// Actually parse the chapters
 	result.chapters = chapter_markers.map(chapterParser);
 
 	return result;
@@ -372,13 +372,24 @@ function bodyParser(markers : Marker[],
 		}
 	}
 
-	let marker : Marker | undefined;
-	while(marker = markers.shift()){
-
-		let t_idx = result.text.length; // newly opened sections begin after the space character
+	for(let m_idx = 0; m_idx < markers.length; ++m_idx){
+		let marker : Marker = markers[m_idx];
+		let t_idx = result.text.length;
 
 		///////////////////////////////
-		// First deal with "virtual" tags
+		// See if we need to switch to a specific sub parser
+		if(marker.kind === 'f' || marker.kind === 'fe'){
+			let [ new_m_idx, footnote, next_text ] = parseFootnote(markers, pushError, m_idx);
+			footnote.min = t_idx;
+			footnote.max = t_idx;
+			result.styling.push(footnote);
+			result.text += next_text;
+			m_idx = new_m_idx;
+			continue;
+		}
+
+		///////////////////////////////
+		// Before actually parsing tags, deal with "virtual" tags
 		// Skip this logic if type is verse, since verse hierachies can
 		// span any other type of hierachy
 		if(marker.kind !== 'v'){
@@ -469,22 +480,13 @@ function bodyParser(markers : Marker[],
 				closeTagType('v', t_idx);
 				if(marker.data === undefined){
 					pushError(marker, "Expected verse marker to have verse number as data");
-				} else if (marker.data.match(/^\d+$/)) {
-					cur_open['v'] = {
-						kind: 'v', min: t_idx, max : t_idx,
-						verse: parseInt(marker.data),
-					};
-				} else if (marker.data.match(/^\d+-\d+$/)) {
-					let parts = marker.data.split('-');
-					cur_open['v'] = {
-						kind: 'v', min: t_idx, max : t_idx,
-						verse: { is_range : true,
-										 start    : parseInt(parts[0]),
-										 end      : parseInt(parts[1])
-									 },
-					};
 				} else {
-					pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
+					let verse = parseIntOrRange(marker.data);
+					if(verse){
+						cur_open['v'] = { kind: 'v', min: t_idx, max : t_idx, verse: verse };
+					} else {
+						pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
+					}
 				}
 				break;
 

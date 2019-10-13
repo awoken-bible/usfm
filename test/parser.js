@@ -480,6 +480,48 @@ to describe the contents of this chapter
           { kind: 'tc',   min: 243, max: 247, column: { is_range: true, start: 2, end: 3 } },
         ]),
       });
+    });
+
+    it('Footnote', () => {
+      text = `\\f + \\ft Hello world \\f*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: '',
+        styling: [
+          { kind: 'f',
+            min: 0, max: 0,
+            caller: '+',
+            text: 'Hello world',
+            styling: [
+              { kind: 'ft', min: 0, max: 11 },
+            ]
+          },
+        ],
+      });
+
+
+      text = `\\p
+              \\v 1 Verse text \\f a \\ft Footnote content \\f* can surround the footnote
+              \\v 2 Here is the next verse`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'Verse text can surround the footnoteHere is the next verse',
+        styling: [
+          { kind: 'p', min:  0, max: 58 },
+          { kind: 'v', min:  0, max: 36, verse: 1 },
+
+
+          { kind: 'f',
+            min: 10, max: 10,
+            caller: 'a',
+            text: 'Footnote content',
+            styling: [
+              { kind: 'ft', min: 0, max: 16 },
+            ]
+          },
+
+          { kind: 'v', min: 36, max: 58, verse: 2 },
+        ],
+      });
+
 
     });
   });
