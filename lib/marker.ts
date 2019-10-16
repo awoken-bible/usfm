@@ -123,12 +123,6 @@ const _markerDataRegexp : {
 	'x'   : /^[\+\-a-zA-Z0-9]/, // cross reference
 };
 
-const _marker_types : {
-	[ index: string ]: MarkerStyleType;
-} = {
-
-};
-
 /**
  * Retrieves a regex representing the data that should follow a particular marker
  */
@@ -138,21 +132,6 @@ export function getMarkerDataRegexp(marker : Marker) : RegExp | undefined {
 
 	return _markerDataRegexp[marker.kind];
 }
-
-/**
- * Returns true if a marker is closed by a corresponding * suffixed marker,
- * for example \qs .... qs*
- */
-export function isMarkerPaired(kind : string) : boolean {
-	let marker_type = _marker_types[kind];
-
-	if(marker_type === undefined){
-		throw new Error("Unknown marker kind: " + kind);
-	}
-	return (marker_type === MarkerStyleType.Character ||
-					marker_type === MarkerStyleType.Note);
-}
-
 
 const _marker_default_attribs : {
 	[index: string] : string,
