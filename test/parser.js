@@ -580,5 +580,51 @@ to describe the contents of this chapter
         ],
       });
     });
+
+    it('Cross Reference', () => {
+      text = `\\x + \\xo 20:43 \\xt Psalm 110:1\\x*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: '',
+        styling: [{
+          kind: 'x', min: 0, max: 0,
+          caller:  '+',
+          text: '20:43Psalm 110:1',
+          styling: [
+            { kind: 'xo', min: 0, max:  5 },
+            { kind: 'xt', min: 5, max: 16 },
+          ],
+        }]
+      });
+
+
+      text = `\\v 27 He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind;\\x a \\xo 10:27  \\xt Deuteronomy 6:5\\x* and your neighbor as yourself."\\x - \\xot \\xo 10:27  \\xt Leviticus 19:18 \\xot* \\x*
+`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind; and your neighbor as yourself."',
+        styling: [
+          { kind: 'v', min: 0, max: 167, verse: 27 },
+
+          { kind: 'x', min: 135, max: 135,
+            caller:  'a',
+            text: '10:27Deuteronomy 6:5',
+            styling: [
+              { kind: 'xo', min: 0, max:  5 },
+              { kind: 'xt', min: 5, max: 20 },
+            ],
+          },
+
+          { kind: 'x', min: 167, max: 167,
+            caller:  '-',
+            text: '10:27Leviticus 19:18',
+            styling: [
+              { kind: 'xot', min: 0, max: 20 },
+              { kind: 'xo',  min: 0, max:  5 },
+              { kind: 'xt',  min: 5, max: 20 },
+            ],
+          },
+        ]
+      });
+
+    });
   });
 });

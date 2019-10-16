@@ -1,7 +1,10 @@
 import { Marker, IntOrRange } from './marker';
 import { lexer  } from './lexer';
-import { ParserError, StyleBlockBase, parseIntOrRange, sortStyleBlocks } from './parser_utils';
+import { ParserError, StyleBlockBase, PushErrorFunction,
+				 parseIntOrRange, sortStyleBlocks
+			 } from './parser_utils';
 import { StyleBlockFootnote, parseFootnote } from './parser_footnotes';
+import { StyleBlockCrossRef, parseCrossRef } from './parser_crossref';
 
 export interface TableOfContentsEntry {
 	/** toc1 - eg: The Gospel According to Matthew*/
@@ -93,7 +96,8 @@ type StyleBlock = (StyleBlockNoData    |
 									 StyleBlockIndented  |
 									 StyleBlockColumn    |
 									 StyleBlockVirtual   |
-									 StyleBlockFootnote
+									 StyleBlockFootnote  |
+									 StyleBlockCrossRef
 									);
 
 interface ParseResultBody {
@@ -310,7 +314,7 @@ function chapterParser(markers : Marker[]) : ParseResultChapter {
 	};
 	markers.shift(); // remove the \c marker
 
-	function pushError(marker: Marker, message: string){
+	function pushError(marker: Marker, message: string) : void {
 		result.errors.push({ marker, message });
 	}
 
@@ -347,6 +351,14 @@ function chapterParser(markers : Marker[]) : ParseResultChapter {
 	return result;
 }
 
+const BODY_SUB_PARSERS : {
+	[index: string] : (m: Marker[], p: PushErrorFunction, m_idx: number) => [number, StyleBlock, string];
+} = {
+	'f'  : parseFootnote,
+	'fe' : parseFootnote,
+	'x'  : parseCrossRef,
+};
+
 function bodyParser(markers : Marker[],
 										pushError : (m: Marker, e: string) => void
 									 ) : ParseResultBody {
@@ -378,11 +390,11 @@ function bodyParser(markers : Marker[],
 
 		///////////////////////////////
 		// See if we need to switch to a specific sub parser
-		if(marker.kind === 'f' || marker.kind === 'fe'){
-			let [ new_m_idx, footnote, next_text ] = parseFootnote(markers, pushError, m_idx);
-			footnote.min = t_idx;
-			footnote.max = t_idx;
-			result.styling.push(footnote);
+		if(BODY_SUB_PARSERS[marker.kind] !== undefined){
+			let [ new_m_idx, block, next_text ] = BODY_SUB_PARSERS[marker.kind](markers, pushError, m_idx);
+			block.min = t_idx;
+			block.max = t_idx;
+			result.styling.push(block);
 			result.text += next_text;
 			m_idx = new_m_idx;
 			continue;

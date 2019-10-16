@@ -110,6 +110,7 @@ const _markerDataRegexp : {
 	// . (a custom character used to reference the footnote)
 	'f'   : /^[\+\-a-zA-Z0-9]/, // standard footnote
 	'fe'  : /^[\+\-a-zA-Z0-9]/, // endnote footnote (in books, rendered at end of chapter rather than bottom of page)
+	'x'   : /^[\+\-a-zA-Z0-9]/, // cross reference
 };
 
 const _marker_types : {
