@@ -1,5 +1,9 @@
 export type IntOrRange = number | { is_range: true, start: number, end: number };
 
+export interface MarkerAttributes {
+	[index: string] : string[];
+};
+
 export interface Marker {
 	/**
 	 * The marker identifier, eg 'c' for \c, 'mt' for \mt
@@ -46,6 +50,12 @@ export interface Marker {
 	 * Free text content following this marker, up until the next marker is found
 	 */
 	text?   : string,
+
+	/**
+	 * Additional attributes for a marker, eg lemma = ["grace"] in
+	 * \w gracious|lemma="grace"
+	 */
+	attributes? : MarkerAttributes,
 };
 
 export enum MarkerStyleType {
@@ -141,4 +151,18 @@ export function isMarkerPaired(kind : string) : boolean {
 	}
 	return (marker_type === MarkerStyleType.Character ||
 					marker_type === MarkerStyleType.Note);
+}
+
+
+const _marker_default_attribs : {
+	[index: string] : string,
+} = {
+	// https://ubsicap.github.io/usfm/attributes/index.html#character-markers-providing-attributes
+	w  : "lemma",
+	rb : "gloss",
+	xt : "link-href",
+};
+
+export function getMarkerDefaultAttribute(kind: string) : string | undefined {
+	return _marker_default_attribs[kind];
 }

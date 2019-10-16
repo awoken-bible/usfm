@@ -195,4 +195,40 @@ describe("lexer", () => {
       { kind: 'q', level: 2,     text: 'His good pleasure will prosper forever.' },
     ]);
   });
+
+
+  it('Attributes', () => {
+    expect(Array.from(lexer('\\w gracious|lemma="grace"'))).to.deep.equal([
+      { kind: 'w', text: 'gracious', attributes: { lemma: ["grace"] } },
+    ]);
+
+    expect(Array.from(lexer('\\w gracious|grace'))).to.deep.equal([
+      { kind: 'w', text: 'gracious', attributes: { lemma: ["grace"] } },
+    ]);
+
+    expect(Array.from(lexer('\\w gracious|grace strong="H1234,G5485"'))).to.deep.equal([
+      { kind: 'w', text: 'gracious', attributes: { lemma: ["grace"], strong: ["H1234", "G5485"] } },
+    ]);
+
+    expect(Array.from(lexer('\\w gracious|lemma="grace" strong="H1234,G5485"'))).to.deep.equal([
+      { kind: 'w', text: 'gracious', attributes: { lemma: ["grace"], strong: ["H1234", "G5485"] } },
+    ]);
+
+    expect(Array.from(lexer('\\w gracious|strong="H1234,G5485" grace'))).to.deep.equal([
+      { kind: 'w', text: 'gracious', attributes: { lemma: ["grace"], strong: ["H1234", "G5485"] } },
+    ]);
+
+
+    expect(Array.from(lexer('\\w gracious|strong="H1234,G5485" lemma="grace"'))).to.deep.equal([
+      { kind: 'w', text: 'gracious', attributes: { lemma: ["grace"], strong: ["H1234", "G5485"] } },
+    ]);
+
+    expect(Array.from(lexer('\\fig Hello world|src="test.png" alt="Image" size="col"'))).to.deep.equal([
+      { kind: 'fig', text: 'Hello world', attributes: { src: ["test.png"], alt: ["Image"], size: ["col"]  } },
+    ]);
+
+    expect(() => Array.from(lexer('\\fig hello|test'    ))).to.throw(); // fig has no default attribute
+    expect(() => Array.from(lexer('\\p hello|test'      ))).to.throw(); // p   has no default attribute
+    expect(() => Array.from(lexer('\\w hello|world|test'))).to.throw(); // cannot have multiple |
+  });
 });
