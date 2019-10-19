@@ -1,4 +1,4 @@
-import { Marker, IntOrRange } from './marker';
+import { Marker, MarkerAttributes, IntOrRange } from './marker';
 
 /**
  * Represents an error message produced by the parser
@@ -23,6 +23,12 @@ export interface StyleBlockBase {
 	 * Maximum extent of the styling as expressed in "gap index"
 	 */
 	max : number;
+
+	/**
+	 * Raw attribute strings associated with opening marker for this
+	 * style block
+	 */
+	attributes? : MarkerAttributes,
 };
 
 export type PushErrorFunction = (marker : Marker, message : string) => void;

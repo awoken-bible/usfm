@@ -379,6 +379,9 @@ function bodyParser(markers : Marker[],
 	function closeTagType(kind : string, t_idx : number){
 		if(cur_open[kind]){
 			cur_open[kind].max = t_idx;
+			if(cur_open[kind].attributes === undefined){
+				delete cur_open[kind].attributes;
+			}
 			result.styling.push(cur_open[kind]);
 			delete cur_open[kind];
 		}
@@ -470,7 +473,9 @@ function bodyParser(markers : Marker[],
 				result.text += marker.text || "";
 				cur_open['p'] = {
 					kind: marker.kind, min: t_idx, max : t_idx,
-				};				break;
+					attributes: marker.attributes,
+				};
+				break;
 
 			case 'pi': // indented paragraph
 			case 'ph': // indented with hanging indent, depreacted, use \li#
@@ -480,7 +485,8 @@ function bodyParser(markers : Marker[],
 				try {
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['p'] = {
-						kind: marker.kind, min: t_idx, max : t_idx, indent: level || 1
+						kind: marker.kind, min: t_idx, max : t_idx, indent: level || 1,
+						attributes: marker.attributes,
 					};
 				} catch (e) {}
 				break;
@@ -495,7 +501,9 @@ function bodyParser(markers : Marker[],
 				} else {
 					let verse = parseIntOrRange(marker.data);
 					if(verse){
-						cur_open['v'] = { kind: 'v', min: t_idx, max : t_idx, verse: verse };
+						cur_open['v'] = { kind: 'v', min: t_idx, max : t_idx, verse: verse,
+															attributes: marker.attributes,
+														};
 					} else {
 						pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
 					}
@@ -512,6 +520,7 @@ function bodyParser(markers : Marker[],
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['q'] = {
 						min: t_idx, max : t_idx, kind: marker.kind, indent: level || 1,
+						attributes: marker.attributes,
 					};
 				} catch (e) {}
 				break;
@@ -522,8 +531,8 @@ function bodyParser(markers : Marker[],
 				closeTagType('q', t_idx);
 				result.text += marker.text || "";
 				cur_open['q'] = {
-					min: t_idx, max: t_idx,
-					kind: marker.kind,
+					min: t_idx, max: t_idx, kind: marker.kind,
+					attributes: marker.attributes,
 				};
 				break;
 
@@ -536,7 +545,8 @@ function bodyParser(markers : Marker[],
 				closeTagType('p', t_idx); // close paragraphs
 				closeTagType('q', t_idx); // close poetry
 				cur_open['l'] = {
-					min: t_idx, max: t_idx, kind: marker.kind
+					min: t_idx, max: t_idx, kind: marker.kind,
+					attributes: marker.attributes,
 				};
 				break;
 			case 'li':
@@ -549,6 +559,7 @@ function bodyParser(markers : Marker[],
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['l'] = {
 						min: t_idx, max: t_idx, kind: marker.kind, indent: level || 1,
+						attributes: marker.attributes,
 					};
 				} catch (e) {}
 				break;
@@ -568,6 +579,7 @@ function bodyParser(markers : Marker[],
 						let level = _levelOrThrow(marker, pushError);
 						cur_open[marker.kind] = {
 							min: t_idx, max: t_idx, kind: marker.kind, column: level || 1,
+							attributes: marker.attributes,
 						};
 					} catch (e) {}
 				}
@@ -583,6 +595,7 @@ function bodyParser(markers : Marker[],
 				closeTagType('t', t_idx);
 				cur_open['t'] = {
 					min: t_idx, max: t_idx, kind: marker.kind, column: marker.level || 1,
+					attributes: marker.attributes,
 				};
 				break;
 
@@ -605,7 +618,8 @@ function bodyParser(markers : Marker[],
 						result.text += " " + marker.text;
 					}
 					cur_open[marker.kind] = {
-						min: t_idx, max: t_idx, kind: marker.kind
+						min: t_idx, max: t_idx, kind: marker.kind,
+						attributes: marker.attributes,
 					};
 				}
 				break;
@@ -633,9 +647,7 @@ function bodyParser(markers : Marker[],
 	// Close all outstanding blocks implicity at end of chapter
 	let max = result.text.length;
 	for(let k of Object.keys(cur_open)){
-		if(cur_open[k] == null){ continue; }
-		cur_open[k].max = max;
-		result.styling.push(cur_open[k]);
+		closeTagType(k, max);
 	}
 
 	sortStyleBlocks(result.styling);
