@@ -1,4 +1,4 @@
-import { Marker, IntOrRange } from './marker';
+import { Marker, IntOrRange, getMarkerStyleType, MarkerStyleType } from './marker';
 import { lexer  } from './lexer';
 import { ParserError, StyleBlockBase, PushErrorFunction,
 				 parseIntOrRange, sortStyleBlocks
@@ -387,6 +387,22 @@ function bodyParser(markers : Marker[],
 		}
 	}
 
+	// utility function that closes all currently open character or note
+	// markers
+	function closeCharacterMarkers(t_idx: number){
+		for(let k in cur_open){
+			if(k === 'v'){
+				// Verses are only closed by verses
+				continue;
+			}
+			let style_type = getMarkerStyleType(cur_open[k].kind);
+			if(style_type === MarkerStyleType.Character ||
+				 style_type === MarkerStyleType.Note){
+				closeTagType(k, t_idx);
+			}
+		}
+	}
+
 	for(let m_idx = 0; m_idx < markers.length; ++m_idx){
 		let marker : Marker = markers[m_idx];
 		let t_idx = result.text.length;
@@ -447,6 +463,17 @@ function bodyParser(markers : Marker[],
 				if(marker.kind !== 'lf'){
 					closeTagType('list', t_idx);
 				}
+			}
+		}
+
+		let marker_style_type = getMarkerStyleType(marker.kind);
+		if(marker_style_type === MarkerStyleType.Paragraph){
+			closeCharacterMarkers(t_idx);
+		} else if (marker_style_type === MarkerStyleType.Character ||
+							 marker_style_type === MarkerStyleType.Note
+							) {
+			if(marker.nested === false){
+				closeCharacterMarkers(t_idx);
 			}
 		}
 

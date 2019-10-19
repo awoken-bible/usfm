@@ -1,3 +1,19 @@
+import { readFileSync } from 'fs';
+
+let __MARKER_META__ : any = undefined;
+function MARKER_META(kind: string) : any {
+	if(__MARKER_META__ === undefined){
+		// This file should be created by bin/parseUsfmSty.ts
+		// Run make in the root of the git repo if you experience
+		// a crash here
+		__MARKER_META__ = JSON.parse(
+			readFileSync(__dirname + '/marker_meta.json').toString()
+		);
+	}
+
+	return __MARKER_META__[kind] || {};
+}
+
 export type IntOrRange = number | { is_range: true, start: number, end: number };
 
 export interface MarkerAttributes {
@@ -84,6 +100,10 @@ export enum MarkerStyleType {
 	 * Example: \w grace\w*.
 	 */
 };
+export function getMarkerStyleType(kind: string) : MarkerStyleType | undefined {
+	return MARKER_META(kind).style_type;
+}
+
 
 const _regexpInt : RegExp = /^[0-9]+/;
 const _markerDataRegexp : {
