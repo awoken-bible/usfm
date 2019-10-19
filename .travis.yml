@@ -6,7 +6,7 @@ node_js:
   - lts/*
 
 before_install:
-  - sudo apt-get install -y wget unzip
+  - sudo apt-get install -y wget unzip make
 
 install:
   - npm install

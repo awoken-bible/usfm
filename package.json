@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha test/ --reporter spec",
     "cover": "./node_modules/.bin/nyc ./node_modules/.bin/mocha && ./node_modules/.bin/nyc report --reporter lcov --reporter html",
-    "build": "tsc",
+    "build": "make",
     "docs": "./node_modules/.bin/typedoc --out docs",
     "prepare": "git clean -Xf && npm run build"
   },
