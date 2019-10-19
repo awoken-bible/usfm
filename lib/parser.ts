@@ -41,8 +41,14 @@ interface StyleBlockNoData extends StyleBlockBase{
 	  "lh" | "lf"	| "litl" | "lik" |
 		//https://ubsicap.github.io/usfm/tables/index.html
 		"tr" |
+		// Word level attributes - https://ubsicap.github.io/usfm/attributes/index.html
+		'add' | 'bk' | 'dc' | 'k' | 'lit' | 'nd' | 'ord' | 'pn' | 'png' | 'addpn' |
+		'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' |
+		'sc' | 'sup' | 'ndx' | 'rb' | 'pro' | 'w' | 'wg' | 'wh' | 'wa' |
 	  // misc
 	  "b" // blank line (between paragraphs or poetry)
+
+
 	);
 };
 
@@ -437,7 +443,6 @@ function bodyParser(markers : Marker[],
 				closeTagType('table', t_idx);
 			}
 
-
 			if(marker.kind === 'lh'){
 				// close open lists in case we have lists back to back seperated only by \lh
 				closeTagType('list', t_idx);
@@ -466,13 +471,23 @@ function bodyParser(markers : Marker[],
 			}
 		}
 
+		///////////////////////////////
+		// Automatically close character markers when...
 		let marker_style_type = getMarkerStyleType(marker.kind);
 		if(marker_style_type === MarkerStyleType.Paragraph){
+			// ....currently open paragraph changes
 			closeCharacterMarkers(t_idx);
 		} else if (marker_style_type === MarkerStyleType.Character ||
 							 marker_style_type === MarkerStyleType.Note
 							) {
-			if(marker.nested === false){
+			// ...a new character environment (which is not nested) is opened
+			if(marker.closing){
+				if(cur_open[marker.kind] == null){
+					pushError(marker, "Attempt to close character environment of kind ${marker.kind} but it is not currently open. Skipping marker");
+				} else {
+					closeCharacterMarkers(t_idx);
+				}
+			} else if(!marker.nested){
 				closeCharacterMarkers(t_idx);
 			}
 		}
@@ -593,11 +608,7 @@ function bodyParser(markers : Marker[],
 			case 'liv':
 				if(marker.closing){
 					result.text += marker.text || "";
-					if(cur_open[marker.kind] === undefined){
-						pushError(marker, `Attempt to close paired makrer of kind ${marker.kind}, but the environment is not currently open`);
-					} else {
-						closeTagType(marker.kind, t_idx);
-					}
+					break; // auto closing already handled
 				} else {
 					if(result.text){
 						result.text += marker.text;
@@ -627,19 +638,44 @@ function bodyParser(markers : Marker[],
 				break;
 
 				////////////////////////////////////////////////////////////////////////
-				// PAIRED MARKERS
+				// PAIRED MARKERS (with no data)
 
 			case 'qac':
 			case 'qs':
 			case 'lik':
 			case 'litl':
+			case 'add':
+			case 'bk':
+			case 'dc':
+			case 'k':
+			case 'lit':
+			case 'nd':
+			case 'ord':
+			case 'pn':
+			case 'png':
+			case 'addpn': // :TODO: this deprecated by usfm 3.0, should be mapped to \add \+pn ..... \+pn* \add*
+			case 'qt':
+			case 'sig':
+			case 'sls':
+			case 'tl':
+			case 'wj':
+			case 'em':
+			case 'bd':
+			case 'it':
+			case 'bdit': // :TODO: map this to \bd \+it ... \+it* \bd*
+			case 'no':
+			case 'sc':
+			case 'sup':
+			case 'ndx':
+			case 'rb':
+			case 'pro':
+			case 'w':
+			case 'wg':
+			case 'wh':
+			case 'wa':
 				if(marker.closing){
 					result.text += marker.text || "";
-					if(cur_open[marker.kind] === undefined){
-						pushError(marker, `Attempt to close paired makrer of kind ${marker.kind}, but the environment is not currently open`);
-					} else {
-						closeTagType(marker.kind, t_idx);
-					}
+					break; // logic already handled by automatic character marker closing
 				} else {
 					if(result.text){
 						result.text += " " + marker.text;
@@ -662,6 +698,7 @@ function bodyParser(markers : Marker[],
 				}
 				result.styling.push({ kind: 'b', min: t_idx, max: t_idx });
 				break;
+
 
 				////////////////////////////////////////////////////////////////////////
 
