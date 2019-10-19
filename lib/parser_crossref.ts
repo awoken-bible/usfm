@@ -27,7 +27,7 @@ export function parseCrossRef(markers: Marker[],
 														 ) : [ number, StyleBlockCrossRef, string ] {
 
 	let open_kind = markers[m_idx].kind;
-	if(open_kind !== 'x' && open_kind !== 'fe'){
+	if(open_kind !== 'x'){
 		throw new Error("parseCrossRef expects x tag to start");
 	}
 
