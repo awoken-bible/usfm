@@ -626,5 +626,18 @@ to describe the contents of this chapter
       });
 
     });
+
+    it('Word level attributes', () => {
+      text = `\\p
+              \\v 1 Text \\nd LORD \\nd* here`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'Text LORDhere',
+        styling: [
+          { kind: 'p',  min: 0, max: 13 },
+          { kind: 'v',  min: 0, max: 13, verse: 1 },
+          { kind: 'nd', min: 4, max:  9 },
+        ]
+      });
+    });
   });
 });
