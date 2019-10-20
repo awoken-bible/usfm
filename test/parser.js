@@ -46,7 +46,7 @@ describe('Parser', () => {
                 \\c 2
                 \\cl Chapter Label
                 \\cd Here is some infomative text being used
-to describe the contents of this chapter
+                     to describe the contents of this chapter
                `;
 
     expect(parse(text)).to.deep.equal({
@@ -70,7 +70,7 @@ to describe the contents of this chapter
           errors      : [],
           chapter     : 2,
           label       : 'Chapter Label',
-          description : 'Here is some infomative text being used\nto describe the contents of this chapter',
+          description : 'Here is some infomative text being used to describe the contents of this chapter',
           body: { text: '', styling: [] },
         },
       ],
