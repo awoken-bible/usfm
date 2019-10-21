@@ -46,7 +46,7 @@ function parseAttributes(kind: string, attrib_string: string) : MarkerAttributes
 			}
 
 			++i; //skip the closing "
-			attribs[cur_k] = cur_v.split(",");
+			attribs[cur_k] = cur_v;
 			continue;
 		}
 
@@ -67,7 +67,7 @@ function parseAttributes(kind: string, attrib_string: string) : MarkerAttributes
 			if(cur_k === undefined){
 				throw new Error(`Keyless attribute specified for marker of kind ${kind} but this kind has no default`);
 			}
-			attribs[cur_k] = cur_v.split(",");
+			attribs[cur_k] = cur_v;
 			continue;
 		} else if (attrib_string.charAt(i) !== '='){
 			throw new Error("Invalid character found in attribute key, got: '" + attrib_string.charAt(i) + "'");
@@ -88,7 +88,7 @@ function parseAttributes(kind: string, attrib_string: string) : MarkerAttributes
 			cur_v += attrib_string.charAt(i);
 			++i;
 		}
-		attribs[cur_k] = cur_v.split(",");
+		attribs[cur_k] = cur_v;
 
 		++i;
 	}

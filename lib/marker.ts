@@ -17,7 +17,7 @@ function MARKER_META(kind: string) : any {
 export type IntOrRange = number | { is_range: true, start: number, end: number };
 
 export interface MarkerAttributes {
-	[index: string] : string[];
+	[index: string] : string;
 };
 
 export interface Marker {
