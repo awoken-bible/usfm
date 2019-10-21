@@ -124,7 +124,6 @@ export function parseCrossRef(markers: Marker[],
 
 	// Gather text outside of the footnote, but before the next marker
 	let next_text : string = (markers[m_idx].text || "");
-	if(next_text.length){ next_text = " " + next_text; }
 
 	sortStyleBlocks(result.styling);
 

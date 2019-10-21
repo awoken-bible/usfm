@@ -32,7 +32,7 @@ export enum TokenType {
 	Marker,
 };
 
-interface Token {
+export interface Token {
 	/** The kind of this token */
 	kind       : TokenType;
 

@@ -1,8 +1,8 @@
-import { Marker, MarkerAttributes,
-				 getMarkerDataRegexp, getMarkerDefaultAttribute
+import { Marker, MarkerAttributes, MarkerStyleType,
+				 getMarkerDataRegexp, getMarkerDefaultAttribute, getMarkerStyleType,
 			 } from './marker';
 
-import { tokenizer, isWhitespace, TokenType } from './tokenizer';
+import { tokenizer, isWhitespace, TokenType, Token } from './tokenizer';
 
 function isDigit(c: string){
 	return (c.charCodeAt(0) >= '0'.charCodeAt(0) &&
@@ -130,35 +130,57 @@ function parseMarker(mtex: string) : Marker {
 	return marker;
 }
 
-export function* lexer(text: string) : IterableIterator<Marker> {
-	const EMPTY_MARKER : Marker = {
-		kind: '', text: '',
-	};
+// Determines whether the Token.Whitespace which preceeds the passed
+// in token is "significant" as per the USFM spec
+// (see: https://ubsicap.github.io/usfm/about/syntax.html?highlight=whitespace#whitespace)
+// Such "significant" whitespace is required to adhear to the USFM
+// syntax, and thus should NOT be included in the final text
+function isPreceedingWhitespaceSignificant(tok: Token){
+	switch(tok.kind){
+		case TokenType.Word:
+			// whitespace seperating words in a paragraph is never significant, since it
+			// could simply be one long word (IE: the space in "hello world" is not
+			// required by the USFM syntax - but rather by english syntax)
+			return false;
+		case TokenType.Marker:
+			// Given from the spec:
+			// - Multiple whitespace preceding a paragraph marker is normalized to a single newline. (https://ubsicap.github.io/usfm/about/syntax.html?highlight=whitespace#whitespace-normalization)
+			// - The newline preceeding a new paragraph marker is significant (https://ubsicap.github.io/usfm/about/syntax.html?highlight=whitespace#whitespace)
+			// - Significant whitespace should not be added to the text. (https://ubsicap.github.io/usfm/about/syntax.html?highlight=whitespace#whitespace-normalization)
+			//
+			// We can imply that ANY whitespace preceeding a paragraph marker
+			// should be treated as significant
+			//
+			// We also treat \v tags in the same way, even though technically they are
+			// character markers (but weird ones, since they are never closed by a \v* tag)
 
+			let m = parseMarker(tok.value);
+			return (getMarkerStyleType(m.kind) === MarkerStyleType.Paragraph ||
+							m.kind === 'v'
+						 );
+		case TokenType.VBar:
+			// Space is never required before a VBar
+			return false;
+	}
+}
+
+export function* lexer(text: string) : IterableIterator<Marker> {
 	let tok_iter = tokenizer(text);
-	let marker   = { ...EMPTY_MARKER };
+	let marker : Marker = { kind: '', text: '' };
 
 	function emit() : Marker{
-		if(marker.text){
-			marker.text = marker.text.trim();
-		}
-		if(marker.text === ''){
-			delete marker.text;
-		}
-		let retval = marker;
-
-		marker = { ...EMPTY_MARKER };
-
-		return retval;
+		if(marker.text === ''){ delete marker.text; }
+		return marker;
 	}
 
 	let tok = tok_iter.next();
-	while(!tok.done){
-		// Skip whitespace
-		if(tok.value.kind === TokenType.Whitespace){
-			tok = tok_iter.next();
-		}
 
+	// Skip leading whitespace
+	if(!tok.done && tok.value.kind === TokenType.Whitespace){
+		tok = tok_iter.next();
+	}
+
+	while(!tok.done){
 		if(tok.value.kind !== TokenType.Marker) {
 			throw new Error("Expected \\ at position " + tok.value.min + ", got token: '" + tok.value.value + "'");
 		}
@@ -175,8 +197,10 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 			tok = tok_iter.next(); // skip the whitespace token
 		} else {
 			if(tok.value.kind === TokenType.Whitespace){
-				marker.text = " ";
 				tok = tok_iter.next(); // skip the whitespace token
+				if(!tok.done && !isPreceedingWhitespaceSignificant(tok.value)){
+					marker.text += " ";
+				}
 			} else {
 				marker.text = "";
 			}
@@ -191,8 +215,10 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 		while(parsing_marker_text && !tok.done){
 			switch(tok.value.kind){
 				case TokenType.Whitespace:
-					marker_text += " ";
 					tok = tok_iter.next();
+					if(!tok.done && !isPreceedingWhitespaceSignificant(tok.value)){
+						marker_text += " ";
+					}
 					break;
 				case TokenType.Word:
 					marker_text += tok.value.value;
@@ -216,7 +242,7 @@ export function* lexer(text: string) : IterableIterator<Marker> {
 												"' at position, got: " + marker_text);
 			}
 			marker.data = match[0];
-			marker.text = marker_text.substring(match[0].length);
+			marker.text = marker_text.substring(match[0].length+1); //+1 to skip the whitespace
 		}
 
 		if(tok.done){ yield emit(); break; }
