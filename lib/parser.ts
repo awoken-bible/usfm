@@ -493,6 +493,7 @@ function bodyParser(markers : Marker[],
 			}
 		}
 
+		result.text += marker.text || "";
 		switch(marker.kind){
 				////////////////////////////////////////////////////////////////////////
 				// PARAGRAPHS
@@ -513,7 +514,6 @@ function bodyParser(markers : Marker[],
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
 				closeTagType('l', t_idx); // lists  don't   span paragraphs
 				closeTagType('t', t_idx); // tables
-				result.text += marker.text || "";
 				cur_open['p'] = {
 					kind: marker.kind, min: t_idx, max : t_idx,
 					attributes: marker.attributes,
@@ -524,7 +524,6 @@ function bodyParser(markers : Marker[],
 			case 'ph': // indented with hanging indent, depreacted, use \li#
 				closeTagType('p', t_idx);
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
-				result.text += marker.text || "";
 				try {
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['p'] = {
@@ -537,7 +536,6 @@ function bodyParser(markers : Marker[],
 				////////////////////////////////////////////////////////////////////////
 				// VERSES
 			case 'v':
-				result.text += marker.text || "";
 				closeTagType('v', t_idx);
 				if(marker.data === undefined){
 					pushError(marker, "Expected verse marker to have verse number as data");
@@ -557,7 +555,6 @@ function bodyParser(markers : Marker[],
 				// POETRY
 			case 'q':  // poetry, indent given by marker.level
 			case 'qm': // embedded poetry, indent given by marker.level
-				result.text += marker.text || "";
 				closeTagType('q', t_idx);
 				try {
 					let level = _levelOrThrow(marker, pushError);
@@ -572,7 +569,6 @@ function bodyParser(markers : Marker[],
 			case 'qa': // poetry acrostic heading
 			case 'qd': // poetry closing note (eg, "for the director of music" at end of psalms)
 				closeTagType('q', t_idx);
-				result.text += marker.text || "";
 				cur_open['q'] = {
 					min: t_idx, max: t_idx, kind: marker.kind,
 					attributes: marker.attributes,
@@ -583,7 +579,6 @@ function bodyParser(markers : Marker[],
 				// Lists
 			case 'lh':
 			case 'lf':
-				result.text += marker.text || "";
 				closeTagType('l', t_idx); // close open list elements
 				closeTagType('p', t_idx); // close paragraphs
 				closeTagType('q', t_idx); // close poetry
@@ -594,7 +589,6 @@ function bodyParser(markers : Marker[],
 				break;
 			case 'li':
 			case 'lim':
-				result.text += marker.text || "";
 				closeTagType('l', t_idx); // close other list elements
 				closeTagType('p', t_idx); // close paragraphs
 				closeTagType('t', t_idx); // close tables
@@ -608,12 +602,8 @@ function bodyParser(markers : Marker[],
 				break;
 			case 'liv':
 				if(marker.closing){
-					result.text += marker.text || "";
 					break; // auto closing already handled
 				} else {
-					if(result.text){
-						result.text += marker.text;
-					}
 					try {
 						let level = _levelOrThrow(marker, pushError);
 						cur_open[marker.kind] = {
@@ -630,7 +620,6 @@ function bodyParser(markers : Marker[],
 			case 'thr':
 			case 'tc':
 			case 'tcr':
-				result.text += marker.text || "";
 				closeTagType('t', t_idx);
 				cur_open['t'] = {
 					min: t_idx, max: t_idx, kind: marker.kind, column: marker.level || 1,
@@ -674,7 +663,6 @@ function bodyParser(markers : Marker[],
 			case 'wg':
 			case 'wh':
 			case 'wa':
-				result.text += marker.text || "";
 				if(marker.closing){
 					break; // logic already handled by automatic character marker closing
 				} else {
