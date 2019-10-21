@@ -11,8 +11,6 @@ const sortStyleBlocks = require('../lib/parser_utils.ts').sortStyleBlocks;
 const __parser__      = rewire('../lib/parser.ts');
 const bodyParser      = __parser__.__get__('bodyParser');
 
-
-
 let text;
 
 describe('Parser', () => {
@@ -46,7 +44,7 @@ describe('Parser', () => {
                 \\c 2
                 \\cl Chapter Label
                 \\cd Here is some infomative text being used
-to describe the contents of this chapter
+                     to describe the contents of this chapter
                `;
 
     expect(parse(text)).to.deep.equal({
@@ -70,7 +68,7 @@ to describe the contents of this chapter
           errors      : [],
           chapter     : 2,
           label       : 'Chapter Label',
-          description : 'Here is some infomative text being used\nto describe the contents of this chapter',
+          description : 'Here is some infomative text being used to describe the contents of this chapter',
           body: { text: '', styling: [] },
         },
       ],
@@ -235,8 +233,8 @@ to describe the contents of this chapter
               \\q2 Indented
               \\qm3 Embedded
               \\v 3 Verse 3 opening
-              \\q1 Hello \\qac B \\qac* en
-              \\q2 Goodbye world \\qs Selah \\qs*`;
+              \\q1 Hello \\qac B\\qac*en
+              \\q2 Goodbye world \\qs Selah\\qs*`;
 
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: `AlephHello WorldPoetry lineRight poetryCenter poetryBethVerse 2 openingIndentedEmbeddedVerse 3 openingHello BenGoodbye world Selah`,
@@ -264,8 +262,8 @@ to describe the contents of this chapter
           { min: 102, max: 111, kind: 'q',  indent: 1 },
           { min: 111, max: 130, kind: 'q',  indent: 2 },
 
-          { min: 107, max: 109, kind: 'qac' },
-          { min: 124, max: 130, kind: 'qs', },
+          { min: 108, max: 109, kind: 'qac' },
+          { min: 125, max: 130, kind: 'qs', },
         ]),
       });
     });
@@ -290,7 +288,7 @@ to describe the contents of this chapter
               \\li1 \\lik Dan\\lik* \\liv1 Azarel son of Jeroham\\liv1*
               \\lf This was the list of the administrators of the tribes of Israel.`;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
-        text: "This is the list of the administrators of the tribes of Israel: ReubenEliezer son of Zichri SimeonShephatiah son of Maacah LeviHashabiah son of Kemuel AaronZadok JudahElihu, one of King David's brothers IssacharOmri son of Michael ZebulunIshmaiah son of Obadiah NaphtaliJeremoth son of Azriel EphraimHoshea son of Azaziah West ManassehJoel son of Pedaiah East ManassehIddo son of Zechariah BenjaminJaasiel son of Abner DanAzarel son of JerohamThis was the list of the administrators of the tribes of Israel.",
+        text: "This is the list of the administrators of the tribes of Israel:Reuben Eliezer son of ZichriSimeon Shephatiah son of MaacahLevi Hashabiah son of KemuelAaron ZadokJudah Elihu, one of King David's brothersIssachar Omri son of MichaelZebulun Ishmaiah son of ObadiahNaphtali Jeremoth son of AzrielEphraim Hoshea son of AzaziahWest Manasseh Joel son of PedaiahEast Manasseh Iddo son of ZechariahBenjamin Jaasiel son of AbnerDan Azarel son of JerohamThis was the list of the administrators of the tribes of Israel.",
         styling: sortStyleBlocks([
           { kind: 'v',   min:   0, max: 507, verse: { is_range: true, start: 16, end: 22 } },
 
@@ -300,55 +298,55 @@ to describe the contents of this chapter
           { kind: 'lh',  min:   0, max:  63 },
 
           { kind: 'li',  min:  63, max:  91, indent: 1 },
-          { kind: 'lik', min:  63, max:  70 },
+          { kind: 'lik', min:  63, max:  69 },
           { kind: 'liv', min:  70, max:  91, column: 1 },
 
           { kind: 'li',  min:  91, max: 122, indent: 1 },
-          { kind: 'lik', min:  91, max:  98 },
+          { kind: 'lik', min:  91, max:  97 },
           { kind: 'liv', min:  98, max: 122, column: 1 },
 
           { kind: 'li',  min: 122, max: 150, indent: 1 },
-          { kind: 'lik', min: 122, max: 127 },
+          { kind: 'lik', min: 122, max: 126 },
           { kind: 'liv', min: 127, max: 150, column: 1 },
 
           { kind: 'li',  min: 150, max: 161, indent: 1 },
-          { kind: 'lik', min: 150, max: 156 },
+          { kind: 'lik', min: 150, max: 155 },
           { kind: 'liv', min: 156, max: 161, column: 1 },
 
           { kind: 'li',  min: 161, max: 202, indent: 1 },
-          { kind: 'lik', min: 161, max: 167 },
+          { kind: 'lik', min: 161, max: 166 },
           { kind: 'liv', min: 167, max: 202, column: 1 },
 
           { kind: 'li',  min: 202, max: 230, indent: 1 },
-          { kind: 'lik', min: 202, max: 211 },
+          { kind: 'lik', min: 202, max: 210 },
           { kind: 'liv', min: 211, max: 230, column: 1 },
 
           { kind: 'li',  min: 230, max: 261, indent: 1 },
-          { kind: 'lik', min: 230, max: 238 },
+          { kind: 'lik', min: 230, max: 237 },
           { kind: 'liv', min: 238, max: 261, column: 1 },
 
           { kind: 'li',  min: 261, max: 292, indent: 1 },
-          { kind: 'lik', min: 261, max: 270 },
+          { kind: 'lik', min: 261, max: 269 },
           { kind: 'liv', min: 270, max: 292, column: 1 },
 
           { kind: 'li',  min: 292, max: 321, indent: 1 },
-          { kind: 'lik', min: 292, max: 300 },
+          { kind: 'lik', min: 292, max: 299 },
           { kind: 'liv', min: 300, max: 321, column: 1 },
 
           { kind: 'li',  min: 321, max: 354, indent: 1 },
-          { kind: 'lik', min: 321, max: 335 },
+          { kind: 'lik', min: 321, max: 334 },
           { kind: 'liv', min: 335, max: 354, column: 1 },
 
           { kind: 'li',  min: 354, max: 389, indent: 1 },
-          { kind: 'lik', min: 354, max: 368 },
+          { kind: 'lik', min: 354, max: 367 },
           { kind: 'liv', min: 368, max: 389, column: 1 },
 
           { kind: 'li',  min: 389, max: 418, indent: 1 },
-          { kind: 'lik', min: 389, max: 398 },
+          { kind: 'lik', min: 389, max: 397 },
           { kind: 'liv', min: 398, max: 418, column: 1 },
 
           { kind: 'li',  min: 418, max: 443, indent: 1 },
-          { kind: 'lik', min: 418, max: 422 },
+          { kind: 'lik', min: 418, max: 421 },
           { kind: 'liv', min: 422, max: 443, column: 1 },
 
           { kind: 'lf',  min: 443, max: 507 },
@@ -388,31 +386,31 @@ to describe the contents of this chapter
 
           { kind: 'v',    min:  30, max:  63, verse: 8 },
           { kind: 'lim',  min:  30, max:  63, indent: 1 },
-          { kind: 'litl', min:  57, max:  63 },
+          { kind: 'litl', min:  58, max:  63 },
 
           { kind: 'v',    min:  63, max:  82, verse: 9 },
           { kind: 'lim',  min:  63, max:  82, indent: 1 },
-          { kind: 'litl', min:  78, max:  82 },
+          { kind: 'litl', min:  79, max:  82 },
 
           { kind: 'v',    min:  82, max:  95, verse: 10 },
           { kind: 'lim',  min:  82, max:  95, indent: 1 },
-          { kind: 'litl', min:  91, max:  95 },
+          { kind: 'litl', min:  92, max:  95 },
 
           { kind: 'v',    min:  95, max: 155, verse: 11 },
           { kind: 'lim',  min:  95, max: 155, indent: 1 },
-          { kind: 'litl', min: 149, max: 155 },
+          { kind: 'litl', min: 150, max: 155 },
 
           { kind: 'v',    min: 155, max: 170, verse: 12 },
           { kind: 'lim',  min: 155, max: 170, indent: 1 },
-          { kind: 'litl', min: 164, max: 170 },
+          { kind: 'litl', min: 165, max: 170 },
 
           { kind: 'v',    min: 170, max: 184, verse: 13 },
           { kind: 'lim',  min: 170, max: 184, indent: 1 },
-          { kind: 'litl', min: 180, max: 184 },
+          { kind: 'litl', min: 181, max: 184 },
 
           { kind: 'v',    min: 184, max: 199, verse: 14 },
           { kind: 'lim',  min: 184, max: 199, indent: 1 },
-          { kind: 'litl', min: 195, max: 199 },
+          { kind: 'litl', min: 196, max: 199 },
         ]),
       });
 
@@ -434,58 +432,57 @@ to describe the contents of this chapter
               \\v 84 Paragraph should close table`;
 
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
-        text: "They presented their offerings in the following order:DayTribeLeader1stJudahNahshon son of Amminadab2ndIssacharNethanel son of Zuar3rdZebulunEliab son of Helon4thReubenElizur son of Shedeur5thSimeonShelumiel son of ZurishaddaiSpanning textGoesHereParagraph should close table",
+        text: "They presented their offerings in the following order:Day Tribe Leader1st Judah Nahshon son of Amminadab2nd Issachar Nethanel son of Zuar3rd Zebulun Eliab son of Helon4th Reuben Elizur son of Shedeur5th Simeon Shelumiel son of ZurishaddaiSpanning textGoes HereParagraph should close table",
         styling: sortStyleBlocks([
-          { kind: 'v',    min:   0, max: 247, verse: { is_range: true, start: 12, end: 83 } },
-          { kind: 'v',    min: 247, max: 275, verse: 84 },
+          { kind: 'v',    min:   0, max: 260, verse: { is_range: true, start: 12, end: 83 } },
+          { kind: 'v',    min: 260, max: 288, verse: 84 },
 
-          { kind: 'p',    min:   0, max:  54 },
-          { kind: 'p',    min: 247, max: 275 },
+          { kind: 'p',     min:   0, max:  54 },
+          { kind: 'table', min:  54, max: 260, is_virtual: true },
+          { kind: 'p',     min: 260, max: 288 },
 
-          { kind: 'table', min:  54, max:  247, is_virtual: true },
+          { kind: 'tr',   min:  54, max:  70 },
+          { kind: 'th',   min:  54, max:  58, column: 1 },
+          { kind: 'thr',  min:  58, max:  64, column: 2 },
+          { kind: 'th',   min:  64, max:  70, column: 3 },
 
-          { kind: 'tr',   min:  54, max:  68 },
-          { kind: 'th',   min:  54, max:  57, column: 1 },
-          { kind: 'thr',  min:  57, max:  62, column: 2 },
-          { kind: 'th',   min:  62, max:  68, column: 3 },
+          { kind: 'tr',   min:  70, max: 104 },
+          { kind: 'tc',   min:  70, max:  74, column: 1 },
+          { kind: 'tcr',  min:  74, max:  80, column: 2 },
+          { kind: 'tc',   min:  80, max: 104, column: 3 },
 
-          { kind: 'tr',   min:  68, max: 100 },
-          { kind: 'tc',   min:  68, max:  71, column: 1 },
-          { kind: 'tcr',  min:  71, max:  76, column: 2 },
-          { kind: 'tc',   min:  76, max: 100, column: 3 },
+          { kind: 'tr',   min: 104, max: 137 },
+          { kind: 'tc',   min: 104, max: 108, column: 1 },
+          { kind: 'tcr',  min: 108, max: 117, column: 2 },
+          { kind: 'tc',   min: 117, max: 137, column: 3 },
 
-          { kind: 'tr',   min: 100, max: 131 },
-          { kind: 'tc',   min: 100, max: 103, column: 1 },
-          { kind: 'tcr',  min: 103, max: 111, column: 2 },
-          { kind: 'tc',   min: 111, max: 131, column: 3 },
+          { kind: 'tr',   min: 137, max: 167 },
+          { kind: 'tc',   min: 137, max: 141, column: 1 },
+          { kind: 'tcr',  min: 141, max: 149, column: 2 },
+          { kind: 'tc',   min: 149, max: 167, column: 3 },
 
-          { kind: 'tr',   min: 131, max: 159 },
-          { kind: 'tc',   min: 131, max: 134, column: 1 },
-          { kind: 'tcr',  min: 134, max: 141, column: 2 },
-          { kind: 'tc',   min: 141, max: 159, column: 3 },
+          { kind: 'tr',   min: 167, max: 199 },
+          { kind: 'tc',   min: 167, max: 171, column: 1 },
+          { kind: 'tcr',  min: 171, max: 178, column: 2 },
+          { kind: 'tc',   min: 178, max: 199, column: 3 },
 
-          { kind: 'tr',   min: 159, max: 189 },
-          { kind: 'tc',   min: 159, max: 162, column: 1 },
-          { kind: 'tcr',  min: 162, max: 168, column: 2 },
-          { kind: 'tc',   min: 168, max: 189, column: 3 },
+          { kind: 'tr',   min: 199, max: 238 },
+          { kind: 'tc',   min: 199, max: 203, column: 1 },
+          { kind: 'tcr',  min: 203, max: 210, column: 2 },
+          { kind: 'tc',   min: 210, max: 238, column: 3 },
 
-          { kind: 'tr',   min: 189, max: 226 },
-          { kind: 'tc',   min: 189, max: 192, column: 1 },
-          { kind: 'tcr',  min: 192, max: 198, column: 2 },
-          { kind: 'tc',   min: 198, max: 226, column: 3 },
+          { kind: 'tr',   min: 238, max: 251 },
+          { kind: 'tc',   min: 238, max: 251, column: { is_range: true, start: 1, end: 3 } },
 
-          { kind: 'tr',   min: 226, max: 239 },
-          { kind: 'tc',   min: 226, max: 239, column: { is_range: true, start: 1, end: 3 } },
-
-          { kind: 'tr',   min: 239, max: 247 },
-          { kind: 'tc',   min: 239, max: 243, column: 1 },
-          { kind: 'tc',   min: 243, max: 247, column: { is_range: true, start: 2, end: 3 } },
+          { kind: 'tr',   min: 251, max: 260 },
+          { kind: 'tc',   min: 251, max: 256, column: 1 },
+          { kind: 'tc',   min: 256, max: 260, column: { is_range: true, start: 2, end: 3 } },
         ]),
       });
     });
 
     it('Footnote', () => {
-      text = `\\f + \\ft Hello world \\f*`;
+      text = `\\f + \\ft Hello world\\f*`;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: '',
         styling: [
@@ -502,7 +499,7 @@ to describe the contents of this chapter
 
 
       text = `\\p
-              \\v 1 Verse text \\f a \\ft Footnote content \\f* can surround the footnote
+              \\v 1 Verse text\\f a \\ft Footnote content\\f* can surround the footnote
               \\v 2 Here is the next verse`;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: 'Verse text can surround the footnoteHere is the next verse',
@@ -527,7 +524,7 @@ to describe the contents of this chapter
       // https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fr
       text = `\\p
               \\v 37 On the last and most important day of the festival Jesus stood up and said in a loud voice, “Whoever is thirsty should come to me, and
-              \\v 38 whoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’” \\f + \\fr 7.38: \\ft Jesus' words in verses 37-38 may be translated: \\fqa “Whoever is thirsty should come to me and drink. \\fv 38\\fv* As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”\\f*`;
+              \\v 38 whoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’”\\f + \\fr 7.38: \\ft Jesus' words in verses 37-38 may be translated: \\fqa “Whoever is thirsty should come to me and drink.\\fv 38\\fv* As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”\\f*`;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: 'On the last and most important day of the festival Jesus stood up and said in a loud voice, “Whoever is thirsty should come to me, andwhoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’”',
         styling: sortStyleBlocks([
@@ -536,12 +533,12 @@ to describe the contents of this chapter
           { kind: 'v', min: 134, max: 254, verse: 38 },
 
           { kind: 'f', min: 254, max: 254, caller: '+',
-            text: `Jesus' words in verses 37-38 may be translated:“Whoever is thirsty should come to me and drink.As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”`,
+            text: `Jesus' words in verses 37-38 may be translated: “Whoever is thirsty should come to me and drink. As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”`,
             styling: [
-              { kind: 'ft',  min:   0, max:  47 },
+              { kind: 'ft',  min:   0, max:  48 },
               { kind: 'fr',  min:   0, max:   0, chapter: 7, verse: 38 },
-              { kind: 'fqa', min:  47, max: 202 },
-              { kind: 'fv',  min:  95, max:  95, verse: 38},
+              { kind: 'fqa', min:  48, max: 204 }, // :TODO: fqa should be terminated by the fv tag (since it is not nested with \+fv)
+              { kind: 'fv',  min:  96, max:  96, verse: 38},
             ],
           },
         ])
@@ -549,7 +546,7 @@ to describe the contents of this chapter
 
       // Adapted: https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fk
       text = `\\p
-              \\v 20 Adam \\fe + \\fr 3.20: \\fk Adam: \\ft This name in Hebrew means “all human beings.”\\fe* named his wife Eve, \\f + \\fr 3.20: \\fk Eve: \\ft This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”\\f* because she was the mother of all human beings.
+              \\v 20 Adam\\fe + \\fr 3.20: \\fk Adam: \\ft This name in Hebrew means “all human beings.”\\fe* named his wife Eve,\\f + \\fr 3.20: \\fk Eve: \\ft This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”\\f* because she was the mother of all human beings.
               \\v 21 And the Lord God made clothes out of animal skins for Adam and his wife, and he clothed them.`;
 
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
@@ -559,20 +556,20 @@ to describe the contents of this chapter
           { kind: 'v', min:   0, max:  72, verse: 20 },
 
           { kind: 'fe', min: 4, max: 4, caller: '+',
-            text: `Adam:This name in Hebrew means “all human beings.”`,
+            text: `Adam: This name in Hebrew means “all human beings.”`,
             styling: [
-              { kind: 'fk', min:   0, max:   5 },
+              { kind: 'fk', min:   0, max:   6 },
               { kind: 'fr', min:   0, max:   0, chapter: 3, verse: 20 },
-              { kind: 'ft', min:   5, max:  50 },
+              { kind: 'ft', min:   6, max:  51 },
             ],
           },
 
           { kind: 'f', min: 24, max: 24, caller: '+',
-            text: `Eve:This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”`,
+            text: `Eve: This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”`,
             styling: [
-              { kind: 'fk', min:   0, max:   4 },
+              { kind: 'fk', min:   0, max:   5 },
               { kind: 'fr', min:   0, max:   0, chapter: 3, verse: 20 },
-              { kind: 'ft', min:   4, max: 114 },
+              { kind: 'ft', min:   5, max: 115 },
             ],
           },
 
@@ -588,16 +585,16 @@ to describe the contents of this chapter
         styling: [{
           kind: 'x', min: 0, max: 0,
           caller:  '+',
-          text: '20:43Psalm 110:1',
+          text: '20:43 Psalm 110:1',
           styling: [
-            { kind: 'xo', min: 0, max:  5 },
-            { kind: 'xt', min: 5, max: 16 },
+            { kind: 'xo', min: 0, max:  6 },
+            { kind: 'xt', min: 6, max: 17 },
           ],
         }]
       });
 
 
-      text = `\\v 27 He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind;\\x a \\xo 10:27  \\xt Deuteronomy 6:5\\x* and your neighbor as yourself."\\x - \\xot \\xo 10:27  \\xt Leviticus 19:18 \\xot* \\x*
+      text = `\\v 27 He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind;\\x a \\xo 10:27  \\xt Deuteronomy 6:5\\x* and your neighbor as yourself."\\x - \\xot \\xo 10:27  \\xt Leviticus 19:18\\xot*\\x*
 `;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
         text: 'He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind; and your neighbor as yourself."',
@@ -606,20 +603,20 @@ to describe the contents of this chapter
 
           { kind: 'x', min: 135, max: 135,
             caller:  'a',
-            text: '10:27Deuteronomy 6:5',
+            text: '10:27 Deuteronomy 6:5',
             styling: [
-              { kind: 'xo', min: 0, max:  5 },
-              { kind: 'xt', min: 5, max: 20 },
+              { kind: 'xo', min: 0, max:  6 },
+              { kind: 'xt', min: 6, max: 21 },
             ],
           },
 
           { kind: 'x', min: 167, max: 167,
             caller:  '-',
-            text: '10:27Leviticus 19:18',
+            text: '10:27 Leviticus 19:18',
             styling: [
-              { kind: 'xot', min: 0, max: 20 },
-              { kind: 'xo',  min: 0, max:  5 },
-              { kind: 'xt',  min: 5, max: 20 },
+              { kind: 'xot', min: 0, max: 21 },
+              { kind: 'xo',  min: 0, max:  6 },
+              { kind: 'xt',  min: 6, max: 21 },
             ],
           },
         ]
@@ -629,13 +626,13 @@ to describe the contents of this chapter
 
     it('Word level attributes', () => {
       text = `\\p
-              \\v 1 Text \\nd LORD \\nd* here`;
+              \\v 1 Text \\nd LORD\\nd* here`;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
-        text: 'Text LORDhere',
+        text: 'Text LORD here',
         styling: [
-          { kind: 'p',  min: 0, max: 13 },
-          { kind: 'v',  min: 0, max: 13, verse: 1 },
-          { kind: 'nd', min: 4, max:  9 },
+          { kind: 'p',  min: 0, max: 14 },
+          { kind: 'v',  min: 0, max: 14, verse: 1 },
+          { kind: 'nd', min: 5, max:  9 },
         ]
       });
     });

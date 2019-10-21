@@ -105,18 +105,18 @@ export function getMarkerStyleType(kind: string) : MarkerStyleType | undefined {
 }
 
 
-const _regexpInt : RegExp = /^[0-9]+/;
 const _markerDataRegexp : {
 	[ index: string ] : RegExp;
 } = {
-	'c'   : _regexpInt,
-	'sts' : _regexpInt,
-
 	/////////////////////////////////////////////////////////////////////
 	//
 	// Note: You MUST include the leading ^ to ensure lexer works correctly!
 	//
 	/////////////////////////////////////////////////////////////////////
+
+	// single ints
+	'c'   : /^[0-9]+/,
+	'sts' : /^[0-9]+/,
 
 	// Verse specifiers - usually just a single int, however due to inconsistant
 	// versifications it can occasionally be a range (eg: 28-29) where two verses
@@ -132,7 +132,7 @@ const _markerDataRegexp : {
 	'id'  : /^[A-Za-z1-9]{3}/,
 
 	// encoding, eg "UTF-16", "Custom (FONT.TTF)"
-	'ide' : /^[A-Za-z1-9-]+|Custom \(\W+\)/,
+	'ide' : /^([A-Za-z1-9-]+|Custom \(\W+\))/,
 
 	// footnote, followed by one of:
 	// + (footnote number is generated)

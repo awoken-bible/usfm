@@ -49,13 +49,14 @@ describe("lexer", () => {
     // empty string
     expect(Array.from(lexer(""))).to.deep.equal([]);
 
-    // don't need whitespace after close tag
-    let result = [
-      { kind: 'f', closing: true },
-      { kind: 'v', data: '1', text: 'hi' },
-    ];
-    expect(Array.from(lexer("\\f*\\v 1 hi" ))).to.deep.equal(result);
-    expect(Array.from(lexer("\\f* \\v 1 hi"))).to.deep.equal(result);
+    // Don't need whitespace after close tag, hence it is not "significant"
+    // whitespace and should be included in publishable text
+    expect(Array.from(lexer("\\f*hi" ))).to.deep.equal([
+      { kind: 'f', closing: true, text: 'hi' },
+    ]);
+    expect(Array.from(lexer("\\f* hi"))).to.deep.equal([
+      { kind: 'f', closing: true, text: ' hi' },
+    ]);
 
     // missing data
     expect(() => Array.from(lexer("\\c\n\n\\v 4"))).to.throw();
@@ -70,13 +71,13 @@ describe("lexer", () => {
     // Note I think the first test case here without whitespace should throw
     // however we see examples of missing whitespace in real USFM, eg "\fv 38\fv*"
     // within: https://ubsicap.github.io/usfm/notes_basic/fnotes.html#fv-fv
-    result = [
+    let result = [
       { kind: 'c', data: '1' },
       { kind: 'v', data: '3', text: 'hello' },
     ];
-    expect(Array.from(lexer("\\c 1\\v 3 hello"))).to.deep.equal(result);
+    expect(Array.from(lexer("\\c 1\\v 3 hello"  ))).to.deep.equal(result);
     expect(Array.from(lexer("\\c 1\n\\v 3 hello"))).to.deep.equal(result);
-    expect(Array.from(lexer("\\c 1 \\v 3 hello"))).to.deep.equal(result);
+    expect(Array.from(lexer("\\c 1 \\v 3 hello" ))).to.deep.equal(result);
 
     // verse marker can have range as data value
     expect(Array.from(lexer("\\v 10-11 testing"))).to.deep.equal([
@@ -99,7 +100,16 @@ describe("lexer", () => {
       { kind: 'f',  data: '+' },
       { kind: 'fr', data: '1:1' },
       { kind: 'ft', text: 'The Hebrew word rendered “God” is “אֱלֹהִ֑ים” (Elohim).' },
-      { kind: 'f',  closing: true, text: 'created the heavens and the earth.' },
+      { kind: 'f',  closing: true, text: ' created the heavens and the earth.' },
+    ]);
+  });
+
+  it('Word Level Attributes', () => {
+    text = `\\v 1 Text \\nd LORD\\nd* here`;
+    expect(Array.from(lexer(text))).to.deep.equal([
+      { kind: 'v',  data: '1', text: 'Text ' },
+      { kind: 'nd', text: 'LORD' },
+      { kind: 'nd', closing: true, text: ' here' },
     ]);
   });
 
@@ -178,7 +188,7 @@ describe("lexer", () => {
     // Contains various complex data strings with ranges that have tripped up lexer in past
     text = `\\v 14 Good things and bad, life and death,
             \\q2 poverty and riches, are from the Lord.
-            \\v 15-16  \\f + \\fr 11:15-16  \\ft Verses 15 and 16 are omitted by the best authorities. \\f*
+            \\v 15-16  \\f + \\fr 11:15-16  \\ft Verses 15 and 16 are omitted by the best authorities.\\f*
             \\q1
             \\v 17 The Lord’s gift remains with the godly.
             \\q2 His good pleasure will prosper forever.`;

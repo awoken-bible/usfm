@@ -673,13 +673,10 @@ function bodyParser(markers : Marker[],
 			case 'wg':
 			case 'wh':
 			case 'wa':
+				result.text += marker.text || "";
 				if(marker.closing){
-					result.text += marker.text || "";
 					break; // logic already handled by automatic character marker closing
 				} else {
-					if(result.text){
-						result.text += " " + marker.text;
-					}
 					cur_open[marker.kind] = {
 						min: t_idx, max: t_idx, kind: marker.kind,
 						attributes: marker.attributes,
