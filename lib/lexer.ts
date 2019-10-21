@@ -26,10 +26,37 @@ function parseAttributes(kind: string, attrib_string: string) : MarkerAttributes
 		cur_k = "";
 		cur_v = "";
 
-		// Consume whitespace
+		// Consume leading whitespace
 		while(isWhitespace(attrib_string.charAt(i))){ ++i; }
 
-		while(attrib_string.charAt(i).toLowerCase().match(/^[a-z_\-0-9]$/)){
+		/////////////////////////
+		// Parse keyless attribute value surrounded by "
+		if(attrib_string.charAt(i) === '"'){
+			// Then this is a keyless attribute but quoted so may contain spaces
+			let cur_k = getMarkerDefaultAttribute(kind);
+			if(cur_k === undefined){
+				throw new Error(`Keyless attribute specified for marker of kind ${kind} but this kind has no default`);
+			}
+			++i; // skip opening "
+
+			while(i < attrib_string.length &&
+						attrib_string.charAt(i) !== '"'){
+				cur_v += attrib_string.charAt(i);
+				++i;
+			}
+
+			++i; //skip the closing "
+			attribs[cur_k] = cur_v.split(",");
+			continue;
+		}
+
+		/////////////////////////
+		// Parse token until space (if value of keyless attribute) or
+		// until `= if keyed attribute
+		while(i < attrib_string.length &&
+					attrib_string.charAt(i) !== '=' &&
+					attrib_string.charAt(i) !== ' '
+				 ){
 			cur_v += attrib_string.charAt(i);
 			++i;
 		}

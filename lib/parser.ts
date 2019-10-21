@@ -44,7 +44,7 @@ interface StyleBlockNoData extends StyleBlockBase{
 		// Word level attributes - https://ubsicap.github.io/usfm/attributes/index.html
 		'add' | 'bk' | 'dc' | 'k' | 'lit' | 'nd' | 'ord' | 'pn' | 'png' | 'addpn' |
 		'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' |
-		'sc' | 'sup' | 'ndx' | 'rb' | 'pro' | 'w' | 'wg' | 'wh' | 'wa' |
+		'sc' | 'sup' | 'ndx' | 'rb' | 'pro' | 'w' | 'wg' | 'wh' | 'wa' | 'fig' |
 	  // misc
 	  "b" // blank line (between paragraphs or poetry)
 
@@ -663,6 +663,7 @@ function bodyParser(markers : Marker[],
 			case 'wg':
 			case 'wh':
 			case 'wa':
+			case 'fig':
 				if(marker.closing){
 					break; // logic already handled by automatic character marker closing
 				} else {

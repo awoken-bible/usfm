@@ -635,6 +635,57 @@ describe('Parser', () => {
           { kind: 'nd', min: 5, max:  9 },
         ]
       });
+
+      // ASV Genesis 1:1
+      text = `\\v 1 \\w In|strong="H430"\\w* \\w the|strong="H853"\\w* \\w beginning|strong="H7225"\\w* \\w God|strong="H430"\\w* \\w created|strong="H1254"\\w* \\w the|strong="H853"\\w* \\w heavens|strong="H8064"\\w* \\w and|strong="H430"\\w* \\w the|strong="H853"\\w* \\w earth|strong="H776"\\w*.`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'In the beginning God created the heavens and the earth.',
+        styling: sortStyleBlocks([
+          { kind: 'v', min:  0, max: 55, verse: 1 },
+          { kind: 'w', min:  0, max:  2, attributes: { strong: [ "H430"  ] } },
+          { kind: 'w', min:  3, max:  6, attributes: { strong: [ "H853"  ] } },
+          { kind: 'w', min:  7, max: 16, attributes: { strong: [ "H7225" ] } },
+          { kind: 'w', min: 17, max: 20, attributes: { strong: [ "H430"  ] } },
+          { kind: 'w', min: 21, max: 28, attributes: { strong: [ "H1254" ] } },
+          { kind: 'w', min: 29, max: 32, attributes: { strong: [ "H853"  ] } },
+          { kind: 'w', min: 33, max: 40, attributes: { strong: [ "H8064" ] } },
+          { kind: 'w', min: 41, max: 44, attributes: { strong: [ "H430"  ] } },
+          { kind: 'w', min: 45, max: 48, attributes: { strong: [ "H853"  ] } },
+          { kind: 'w', min: 49, max: 54, attributes: { strong: [ "H776"  ] } },
+        ]),
+      });
+
+
+
+      let result = [
+        { kind: 'rb', min:  0, max: 2, attributes: { gloss: ['gg:gg'] } },
+      ];
+      text = `\\rb BB|gloss="gg:gg"\\rb*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'BB', styling: result,
+      });
+      text = `\\rb BB|gg:gg\\rb*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'BB', styling: result,
+      });
+      text = `\\rb BB|"gg:gg"\\rb*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'BB', styling: result,
+      });
+
+
+      text = `\\fig Caption Text|src="test.png" size="col" ref="GEN 3:8" copy="Public Domain" \\fig*`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: 'Caption Text',
+        styling: sortStyleBlocks([
+          { kind: 'fig', min:  0, max: 12, attributes: { src  : ['test.png'],
+                                                         size : ['col'],
+                                                         ref  : ['GEN 3:8'],
+                                                         copy : ['Public Domain'],
+                                                       } },
+        ])
+      });
+
     });
   });
 });
