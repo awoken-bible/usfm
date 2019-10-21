@@ -348,11 +348,12 @@ function chapterParser(markers : Marker[]) : ParseResultChapter {
 				break;
 			default:
 				parsing_headers = false;
+				--m_idx;
 				break;
 		} // end of switch marker.kind
 	}
 
-	result.body = bodyParser(markers.slice(m_idx-1), pushError);
+	result.body = bodyParser(markers.slice(m_idx), pushError);
 
 	return result;
 }
