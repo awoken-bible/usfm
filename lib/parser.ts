@@ -45,11 +45,20 @@ interface StyleBlockNoData extends StyleBlockBase{
 		'add' | 'bk' | 'dc' | 'k' | 'lit' | 'nd' | 'ord' | 'pn' | 'png' | 'addpn' |
 		'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' |
 		'sc' | 'sup' | 'ndx' | 'rb' | 'pro' | 'w' | 'wg' | 'wh' | 'wa' | 'fig' |
+		// titles, headings, labels: https://ubsicap.github.io/usfm/titles_headings/index.html
+		'sr' | 'r' | 'rq' | 'd' |	'sp' | 'sd' |
 	  // misc
 	  "b" // blank line (between paragraphs or poetry)
-
-
 	);
+};
+
+interface StyleBlockHeading extends StyleBlockBase {
+	kind: 's' | 'sd' | 'ms',
+
+	/**
+	 * level of division for the section heading
+	 */
+	level: number,
 };
 
 /**
@@ -103,7 +112,8 @@ type StyleBlock = (StyleBlockNoData    |
 									 StyleBlockColumn    |
 									 StyleBlockVirtual   |
 									 StyleBlockFootnote  |
-									 StyleBlockCrossRef
+									 StyleBlockCrossRef  |
+									 StyleBlockHeading
 									);
 
 interface ParseResultBody {
@@ -232,12 +242,21 @@ export function parse(text: string) : ParseResultBook {
 	}
 
 	let parsing_headers = true;
+	let parsing_study_content = false;
+
 	let marker_yield_val : IteratorResult<Marker>;
 	let marker : Marker = { kind: '' };
 	while(parsing_headers){
 		marker_yield_val = lex_iter.next();
 		if(marker_yield_val.done){ return result; }
 		marker = marker_yield_val.value;
+
+		if(parsing_study_content){
+			if(marker.kind === 'c'){
+				parsing_headers = false;
+			}
+			continue;
+		}
 
 		switch(marker.kind){
 			case 'id':
@@ -271,6 +290,14 @@ export function parse(text: string) : ParseResultBook {
 				break;
 			case 'c':
 				parsing_headers = false;
+				break;
+			case 'ip':
+			case 'is':
+			case 'bk':
+			case 'ili':
+				// :TODO: extended study content introduction sections and paragraphs are
+				// skipped for now
+				parsing_study_content = true;
 				break;
 			default:
 				pushError(marker, "Unexpected marker in book header section");
@@ -514,6 +541,7 @@ function bodyParser(markers : Marker[],
 				closeTagType('q', t_idx); // poetry doesn't span paragraphs
 				closeTagType('l', t_idx); // lists  don't   span paragraphs
 				closeTagType('t', t_idx); // tables
+				closeTagType('s', t_idx); // labels, sections, etc
 				cur_open['p'] = {
 					kind: marker.kind, min: t_idx, max : t_idx,
 					attributes: marker.attributes,
@@ -531,6 +559,42 @@ function bodyParser(markers : Marker[],
 						attributes: marker.attributes,
 					};
 				} catch (e) {}
+				break;
+
+				////////////////////////////////////////////////////////////////////////
+				// Sections, titles, etc
+			case 'sr':
+			case 'r':
+			case 'd':
+			case 'sp':
+				closeTagType('p', t_idx);
+				closeTagType('q', t_idx);
+				closeTagType('l', t_idx);
+				closeTagType('t', t_idx);
+				closeTagType('s', t_idx);
+				closeTagType('v', t_idx);
+
+				cur_open['s'] = {
+					kind: marker.kind, min: t_idx, max : t_idx,
+					attributes: marker.attributes,
+				};
+				break;
+
+			case 's':
+			case 'sd':
+			case 'ms':
+				closeTagType('p', t_idx);
+				closeTagType('q', t_idx);
+				closeTagType('l', t_idx);
+				closeTagType('t', t_idx);
+				closeTagType('s', t_idx);
+				closeTagType('v', t_idx);
+
+				let level = _levelOrThrow(marker, pushError);
+				cur_open['s'] = {
+					kind: marker.kind, min: t_idx, max : t_idx, level: level || 1,
+					attributes: marker.attributes,
+				};
 				break;
 
 				////////////////////////////////////////////////////////////////////////
@@ -556,6 +620,7 @@ function bodyParser(markers : Marker[],
 			case 'q':  // poetry, indent given by marker.level
 			case 'qm': // embedded poetry, indent given by marker.level
 				closeTagType('q', t_idx);
+				closeTagType('s', t_idx); // labels, sections, etc
 				try {
 					let level = _levelOrThrow(marker, pushError);
 					cur_open['q'] = {
@@ -582,6 +647,7 @@ function bodyParser(markers : Marker[],
 				closeTagType('l', t_idx); // close open list elements
 				closeTagType('p', t_idx); // close paragraphs
 				closeTagType('q', t_idx); // close poetry
+				closeTagType('s', t_idx); // labels, sections, etc
 				cur_open['l'] = {
 					min: t_idx, max: t_idx, kind: marker.kind,
 					attributes: marker.attributes,
@@ -664,6 +730,7 @@ function bodyParser(markers : Marker[],
 			case 'wh':
 			case 'wa':
 			case 'fig':
+			case 'rq':
 				if(marker.closing){
 					break; // logic already handled by automatic character marker closing
 				} else {
