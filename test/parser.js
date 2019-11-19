@@ -481,6 +481,50 @@ describe('Parser', () => {
       });
     });
 
+    it('Table', () => {
+      // GNT Proverbs 22.17
+      text = `\\s1 The Thirty Wise Sayings
+              \\sr (22.17--24.22)
+              \\p
+              \\v 17 Listen, and I will teach you what the wise have said.`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: "The Thirty Wise Sayings(22.17--24.22)Listen, and I will teach you what the wise have said.",
+        styling: sortStyleBlocks([
+          { kind: 's',    min:   0, max:  23, level: 1 },
+          { kind: 'sr',   min:  23, max:  37  },
+          { kind: 'p',    min:  37, max:  90 },
+          { kind: 'v',    min:  37, max:  90, verse: 17 },
+        ])
+      });
+
+
+      text = `\\s2 Medium Header
+              \\p
+              \\v 1 Hello world\\rq Somewhere 1.2\\rq*
+              \\d Descriptive Title
+              \\q
+              \\v 2 More text
+              \\sd1
+              \\p
+              \\v 3 Goodbye`;
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: "Medium HeaderHello worldSomewhere 1.2Descriptive TitleMore textGoodbye",
+        styling: sortStyleBlocks([
+          { kind: 's',    min:   0, max:  13, level: 2 },
+          { kind: 'p',    min:  13, max:  37 },
+          { kind: 'v',    min:  13, max:  37, verse: 1 },
+          { kind: 'rq',   min:  24, max:  37 },
+          { kind: 'd',    min:  37, max:  54 },
+          { kind: 'q',    min:  54, max:  63, indent: 1 },
+          { kind: 'v',    min:  54, max:  63, verse: 2 },
+          { kind: 'sd',   min:  63, max:  63, level: 1 },
+          { kind: 'p',    min:  63, max:  70 },
+          { kind: 'v',    min:  63, max:  70, verse: 3 },
+        ])
+      });
+    });
+
     it('Footnote', () => {
       text = `\\f + \\ft Hello world\\f*`;
       expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
