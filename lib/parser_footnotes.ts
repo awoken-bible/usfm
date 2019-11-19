@@ -13,7 +13,7 @@ export interface StyleBlockFootnoteVerse extends StyleBlockBase {
 };
 
 export interface StyleBlockFootnoteNoData extends StyleBlockBase {
-	kind: 'fq' | 'fqa' | 'fk' | 'fl' | 'fw' | 'fp' | 'fv' | 'ft' | 'fdc' | 'fm';
+	kind: 'fq' | 'fqa' | 'fk' | 'fl' | 'fw' | 'fp' | 'fv' | 'ft' | 'fdc' | 'fm' | 'bk';
 };
 
 export type StyleBlockFootnoteContent = ( StyleBlockFootnoteReference |
@@ -117,6 +117,7 @@ export function parseFootnote(markers: Marker[],
 				// Paired markers
 			case 'fdc':
 			case 'fm':
+			case 'bk':
 				result.text += marker.text || "";
 				if(marker.closing){
 					if(cur_open[marker.kind] === undefined){

@@ -620,6 +620,34 @@ describe('Parser', () => {
           { kind: 'v', min:  72, max: 165, verse: 21 },
         ],
       });
+
+
+      // WEB DAG (Daniel with Greek) 3.23-24
+
+      text = `\\v 23 These three men, Shadrach, Meshach, and Abednego, fell down bound into the middle of the burning fiery furnace.
+              \\s1 THE SONG OF THE THREE HOLY CHILDREN\\f + \\fr 3:24  \\ft  \\+bk The Song of the Three Holy Children\\+bk* is an addition to \\+bk Daniel\\+bk* found in the Greek Septuagint but not found in the traditional Hebrew text of \\+bk Daniel\\+bk*. This portion is recognised as Deuterocanonical Scripture by the Roman Catholic, Greek Orthodox, and Russian Orthodox Churches. It is found inserted between Daniel 3:23 and Daniel 3:24 of the traditional Hebrew Bible. Here, the verses after 23 from the Hebrew Bible are numbered starting at 91 to make room for these verses.\\f*
+              \\p
+              \\v 24 They walked in the midst of the fire, praising God, and blessing the Lord.`;
+
+      expect(bodyParser(Array.from(lexer(text)))).to.deep.equal({
+        text: `These three men, Shadrach, Meshach, and Abednego, fell down bound into the middle of the burning fiery furnace.THE SONG OF THE THREE HOLY CHILDRENThey walked in the midst of the fire, praising God, and blessing the Lord.`,
+        styling: [
+          { kind: 'v', min:   0, max: 111, verse: 23 },
+          { kind: 's', min: 111, max: 146, level: 1 },
+          { kind: 'p', min: 146, max: 220 },
+          { kind: 'v', min: 146, max: 220, verse: 24 },
+          { kind: 'f', min: 146, max: 146, caller: '+',
+            text: `The Song of the Three Holy Children is an addition to Daniel found in the Greek Septuagint but not found in the traditional Hebrew text of Daniel. This portion is recognised as Deuterocanonical Scripture by the Roman Catholic, Greek Orthodox, and Russian Orthodox Churches. It is found inserted between Daniel 3:23 and Daniel 3:24 of the traditional Hebrew Bible. Here, the verses after 23 from the Hebrew Bible are numbered starting at 91 to make room for these verses.`,
+            styling: [
+              { kind: 'ft', min:   0, max: 470 },
+              { kind: 'bk', min:   0, max:  35 },
+              { kind: 'fr', min:   0, max:   0, chapter: 3, verse: 24 },
+              { kind: 'bk', min:  54, max:  60 },
+              { kind: 'bk', min: 139, max: 145 },
+            ]
+          },
+        ]
+      });
     });
 
     it('Cross Reference', () => {
