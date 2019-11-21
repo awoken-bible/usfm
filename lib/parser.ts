@@ -215,7 +215,7 @@ interface ParseResultBookSuccess {
 	chapters: ParseResultChapter[],
 };
 
-type ParseResultBook = {
+export type ParseResultBook = {
 	success : false,
 	errors  : ParserError[],
 } | ParseResultBookSuccess;
