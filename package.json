@@ -10,9 +10,6 @@
     "docs": "./node_modules/.bin/typedoc --out docs",
     "prepare": "git clean -Xf && npm run build"
   },
-  "dependencies": {
-    "awoken-bible-reference": "1.4.0"
-  },
   "devDependencies": {
     "@types/node": "^12.7.8",
     "@types/parsimmon": "^1.10.0",
