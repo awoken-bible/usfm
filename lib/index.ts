@@ -8,7 +8,7 @@ export { parse };
  * Yields a promise which eventually resolves to the parsed content for
  * some file
  */
-export function parseFile(path : string) : Promise<ParseResultBook>{
+export function parseFile(path : string) : Promise<ParseResultBook> {
 	return new Promise((resolve, reject) => {
 		readFile(path, (err, data) => {
 			if(err){ return reject(err); }

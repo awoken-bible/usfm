@@ -5,6 +5,7 @@ import { ParserError, StyleBlockBase, PushErrorFunction,
 			 } from './parser_utils';
 import { StyleBlockFootnote, parseFootnote } from './parser_footnotes';
 import { StyleBlockCrossRef, parseCrossRef } from './parser_crossref';
+import AwokenRef, { BibleRef } from 'awoken-bible-reference';
 
 export interface TableOfContentsEntry {
 	/** toc1 - eg: The Gospel According to Matthew*/
@@ -67,7 +68,11 @@ interface StyleBlockHeading extends StyleBlockBase {
 interface StyleBlockVerse extends StyleBlockBase{
 	kind : "v";
 
-	verse : IntOrRange;
+	// The BibleRef of the text in this verse
+	// Note that this may be a BibleRange rather than just BibleVerse instance,
+	// since some (usually less literal) translations sometimes merge verses together
+	// into a single flowing sentence
+	ref : BibleRef;
 };
 
 interface StyleBlockIndented extends StyleBlockBase {
@@ -308,6 +313,11 @@ export function parse(text: string) : ParseResultBook {
 		} // end of switch marker.kind
 	}
 
+	if(result.book_id === undefined){
+		pushError(marker, "End of book header but ID was not found, using value '???'");
+		result.book_id = '???';
+	}
+
 	//////////////////////////////
 	// Read the remaining markers from lexer, splitting them into
 	// an array of arrays, where each sub array is all the markers
@@ -325,12 +335,21 @@ export function parse(text: string) : ParseResultBook {
 
 	//////////////////////////////
 	// Actually parse the chapters
-	result.chapters = chapter_markers.map(chapterParser);
+	result.chapters = chapter_markers.map(x => chapterParser(x, result.book_id!));
 
 	return result;
 }
 
-function chapterParser(markers : Marker[]) : ParseResultChapter {
+/**
+ * Internal function which parses the USFM for a single chapter, including any header markers
+ * such as chapter title, description, etc
+ *
+ * @private
+ *
+ * @param  - markers - Array of markers to process  (IE: the lexed tokens for this parser)
+ * @param  - book_id - The book being parsed, used to generate appropriate [[BibleRef]]'s
+ */
+function chapterParser(markers : Marker[], book_id : string) : ParseResultChapter {
 
 	if(markers[0].kind !== 'c'){
 		throw new Error("First marker in chapterParser must be of kind \\c");
@@ -380,21 +399,34 @@ function chapterParser(markers : Marker[]) : ParseResultChapter {
 		} // end of switch marker.kind
 	}
 
-	result.body = bodyParser(markers.slice(m_idx), pushError);
+	result.body = bodyParser(markers.slice(m_idx), pushError, book_id, result.chapter);
 
 	return result;
 }
 
 const BODY_SUB_PARSERS : {
-	[index: string] : (m: Marker[], p: PushErrorFunction, m_idx: number) => [number, StyleBlock, string];
+	[index: string] : (m: Marker[], p: PushErrorFunction, m_idx: number, book: string, chapter: number) => [number, StyleBlock, string];
 } = {
 	'f'  : parseFootnote,
 	'fe' : parseFootnote,
 	'x'  : parseCrossRef,
 };
 
+/**
+ * Internal function which parses the main body of a single chapter of a USFM file
+ * @private
+ *
+ * @param markers      - Array of markers to process (IE: the lexed tokens for this parser)
+ * @param pushError    - Function which should be used to indicate an error has occured during parsing
+ * @param book_id      - The id of the book being parsed (used to generate [[BibleRef]]'s for verse
+ *                       markers, hence can set to any value if these not needed)
+ * @param chapter_num  - The chapter number being parsed (used to generate [[BibleRef]]'s for verse
+ *                       markers, hence can be set to any value if these not needed)
+ *
+ */
 function bodyParser(markers : Marker[],
-										pushError : (m: Marker, e: string) => void
+										pushError : (m: Marker, e: string) => void,
+										book_id: string, chapter_num: number
 									 ) : ParseResultBody {
 
 	let result : ParseResultBody = {
@@ -444,7 +476,7 @@ function bodyParser(markers : Marker[],
 		///////////////////////////////
 		// See if we need to switch to a specific sub parser
 		if(BODY_SUB_PARSERS[marker.kind] !== undefined){
-			let [ new_m_idx, block, next_text ] = BODY_SUB_PARSERS[marker.kind](markers, pushError, m_idx);
+			let [ new_m_idx, block, next_text ] = BODY_SUB_PARSERS[marker.kind](markers, pushError, m_idx, book_id, chapter_num);
 			block.min = t_idx;
 			block.max = t_idx;
 			result.styling.push(block);
@@ -604,13 +636,22 @@ function bodyParser(markers : Marker[],
 				if(marker.data === undefined){
 					pushError(marker, "Expected verse marker to have verse number as data");
 				} else {
-					let verse = parseIntOrRange(marker.data);
-					if(verse){
-						cur_open['v'] = { kind: 'v', min: t_idx, max : t_idx, verse: verse,
+					let v_data = parseIntOrRange(marker.data);
+
+					if(!v_data){
+						pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
+					} else {
+						let vref : BibleRef = (
+							v_data.is_range ?
+								{ is_range: true,
+									start   : { book: book_id, chapter: chapter_num, verse: v_data.start },
+									end     : { book: book_id, chapter: chapter_num, verse: v_data.end },
+								} :
+								{ book: book_id, chapter: chapter_num, verse: v_data.value }
+						);
+						cur_open['v'] = { kind: 'v', min: t_idx, max : t_idx, ref: vref,
 															attributes: marker.attributes,
 														};
-					} else {
-						pushError(marker, "Invalid format for verse marker's data, wanted integer or integer range, got: '" + marker.data + "'");
 					}
 				}
 				break;
@@ -673,7 +714,7 @@ function bodyParser(markers : Marker[],
 					try {
 						let level = _levelOrThrow(marker, pushError);
 						cur_open[marker.kind] = {
-							min: t_idx, max: t_idx, kind: marker.kind, column: level || 1,
+							min: t_idx, max: t_idx, kind: marker.kind, column: { is_range: false, value: level || 1 },
 							attributes: marker.attributes,
 						};
 					} catch (e) {}
@@ -688,7 +729,7 @@ function bodyParser(markers : Marker[],
 			case 'tcr':
 				closeTagType('t', t_idx);
 				cur_open['t'] = {
-					min: t_idx, max: t_idx, kind: marker.kind, column: marker.level || 1,
+					min: t_idx, max: t_idx, kind: marker.kind, column: marker.level || { is_range: false, value: 1 },
 					attributes: marker.attributes,
 				};
 				break;
@@ -776,7 +817,7 @@ function _assignTocValue(toc    : TableOfContentsEntry,
 												 marker : Marker,
 												 pushError : (a: Marker, b: string) => void
 												){
-	switch(marker.level){
+	switch((marker.level as any).value){
 		case undefined:
 		case 1:
 			toc.long_text = marker.text;
@@ -815,11 +856,15 @@ function _levelOrThrow(marker    : Marker,
 											 pushError : (m: Marker, err: string   ) => void,
 											) : number | undefined {
 
-	if(marker.level === undefined || typeof marker.level === typeof 1){
-		return marker.level as number | undefined;
+
+	if(marker.level === undefined){ return undefined; }
+
+	if(marker.level.is_range){
+		let message = `Expected integer level for marker ${marker.kind} but got range`;
+		pushError(marker, message);
+		throw new Error(message);
+	} else {
+		return marker.level.value;
 	}
 
-	let message = `Expected integer level for marker ${marker.kind} but got range`;
-	pushError(marker, message);
-	throw new Error(message);
 }

@@ -130,7 +130,7 @@ function parseMarker(mtex: string) : Marker {
 		}
 
 		if(mtex.charAt(t) !== '-'){
-			marker.level = parseInt(start);
+			marker.level = { is_range: false, value: parseInt(start) };
 		} else {
 			++t; // skip the -
 			while(isDigit(mtex.charAt(t))){
