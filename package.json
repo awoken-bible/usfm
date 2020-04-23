@@ -23,6 +23,9 @@
     "typedoc": "^0.15.0",
     "typescript": "^3.6.2"
   },
+  "dependencies": {
+    "awoken-bible-reference": "^1.6.1"
+  },
   "directories": {
     "test": "test"
   },
