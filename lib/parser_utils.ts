@@ -38,7 +38,7 @@ export type PushErrorFunction = (marker : Marker, message : string) => void;
  */
 export function parseIntOrRange(str: string) : IntOrRange | undefined{
 	if (str.match(/^\d+$/)) {
-		return parseInt(str);
+		return { is_range: false, value: parseInt(str) };
 	} else if (str.match(/^\d+-\d+$/)) {
 		let parts = str.split('-');
 		return  { is_range : true,

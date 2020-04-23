@@ -14,7 +14,7 @@ function MARKER_META(kind: string) : any {
 	return __MARKER_META__[kind] || {};
 }
 
-export type IntOrRange = number | { is_range: true, start: number, end: number };
+export type IntOrRange = { is_range: false, value: number } | { is_range: true, start: number, end: number };
 
 export interface MarkerAttributes {
 	[index: string] : string;

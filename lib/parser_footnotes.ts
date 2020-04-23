@@ -1,15 +1,27 @@
 import { Marker } from './marker';
 import { StyleBlockBase, parseIntOrRange, PushErrorFunction, sortStyleBlocks } from './parser_utils';
+import { IntOrRange } from './marker';
+import { BibleRef } from 'awoken-bible-reference';
 
+/**
+ * Specifies the verse to which a footnote is making reference
+ */
 export interface StyleBlockFootnoteReference extends StyleBlockBase {
 	kind: 'fr';
-	chapter: number;
-	verse  : number | { is_range: true, start: number, end: number };
+
+	/**
+	 * The [[BibleRef]] to which this footnote is attached, callout to the actual note
+	 * is normally rendered after this BibleRef
+	 */
+	ref: BibleRef
 };
 
+/**
+ * Represents a new verse number within the text of a footnote
+ */
 export interface StyleBlockFootnoteVerse extends StyleBlockBase {
 	kind: 'fv';
-	verse: number | { is_range: true, start: number, end: number };
+	verse: IntOrRange;
 };
 
 export interface StyleBlockFootnoteNoData extends StyleBlockBase {
@@ -35,9 +47,21 @@ export interface StyleBlockFootnote extends StyleBlockBase {
 	styling: StyleBlockFootnoteContent[],
 }
 
+/**
+ * Parses a footnote
+ * @private
+ *
+ * @param markers     - The array of markers to read from (IE: the lexed tokens)
+ * @param pushError   - Function to use to indicate an error occured during parsing
+ * @param m_idx       - Initial index in `markers` array to read from
+ * @param book_id     - Name of current book being parsed, used to generate BibleRef instances
+ * @param chapter_num - Current chapter being being parsed, used to generate BibleRef instances
+ */
 export function parseFootnote(markers: Marker[],
 															pushError: PushErrorFunction,
-															m_idx : number
+															m_idx : number,
+															book_id: string,
+															chapter_num : number,
 														 ) : [ number, StyleBlockFootnote, string ] {
 
 	let open_kind = markers[m_idx].kind;
@@ -152,7 +176,15 @@ export function parseFootnote(markers: Marker[],
 				let verse   = parseIntOrRange(matches[2])!;
 
 				cur_open['f'] = {
-					kind: 'fr', min: t_idx, max: t_idx, chapter: chapter, verse: verse
+					kind: 'fr',
+					min: t_idx, max: t_idx,
+					ref: (verse.is_range ?
+								{ is_range : true,
+									start    : { book: book_id, chapter: chapter, verse: verse.start },
+									end      : { book: book_id, chapter: chapter, verse: verse.end },
+								} :
+								{ book: book_id, chapter: chapter, verse: verse.value }
+							 ),
 				};
 				break;
 
@@ -178,7 +210,7 @@ export function parseFootnote(markers: Marker[],
 						break;
 					}
 					cur_open[marker.kind] = {
-						kind: marker.kind, min: t_idx, max: t_idx, verse: verse
+						kind: marker.kind, min: t_idx, max: t_idx, verse: verse,
 					};
 				}
 				break;
