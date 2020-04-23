@@ -13,6 +13,14 @@ const bodyParser      = __parser__.__get__('bodyParser');
 
 let text;
 
+// Dummy function passed to parser functions as 'pushError' parameter
+// used to ensure tests fail if a parser error is produced
+function throwError(marker, message){
+  console.error("onErorr was called!");
+  console.dir(marker);
+  throw message;
+}
+
 describe('Parser', () => {
   it('Book Headers', () => {
     let text = `\\id GEN Test Bible
@@ -142,7 +150,7 @@ describe('Parser', () => {
               \\m   No indent.
               \\cls Letter closing.`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, '???', 0)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, '???', 0)).to.deep.equal({
         text: 'Hello World.Centered Text.Right Text.Embedded opening.Embedded content.Embedded closing.Letter opening.No indent.Letter closing.',
         styling: sortStyleBlocks([
           { kind: 'v', min:  0, max:  37, ref: { book: '???', chapter: 0, verse: 1 } },
@@ -189,7 +197,7 @@ describe('Parser', () => {
               \\q1 Your desire will be for your husband,
               \\q2 and he will rule over you."`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'GEN', 3)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'GEN', 3)).to.deep.equal({
         text: `Yahweh God said to the serpent,"Because you have done this,you are cursed above all livestock,and above every animal of the field.You shall go on your bellyand you shall eat dust all the days of your life.I will put hostility between you and the woman,and between your offspring and her offspring.He will bruise your head,and you will bruise his heel."To the woman he said,"I will greatly multiply your pain in childbirth.You will bear children in pain.Your desire will be for your husband,and he will rule over you."`,
         styling: sortStyleBlocks([
           { min:   0, max: 352, kind: 'p' },
@@ -236,7 +244,7 @@ describe('Parser', () => {
               \\q1 Hello \\qac B\\qac*en
               \\q2 Goodbye world \\qs Selah\\qs*`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'ABC', 3)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'ABC', 3)).to.deep.equal({
         text: `AlephHello WorldPoetry lineRight poetryCenter poetryBethVerse 2 openingIndentedEmbeddedVerse 3 openingHello BenGoodbye world Selah`,
         styling: sortStyleBlocks([
           { min:   0, max:   5, kind: 'm'  },
@@ -287,7 +295,7 @@ describe('Parser', () => {
               \\li1 \\lik Benjamin\\lik* \\liv1 Jaasiel son of Abner\\liv1*
               \\li1 \\lik Dan\\lik* \\liv1 Azarel son of Jeroham\\liv1*
               \\lf This was the list of the administrators of the tribes of Israel.`;
-      expect(bodyParser(Array.from(lexer(text)), undefined, '1CH', 27)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, '1CH', 27)).to.deep.equal({
         text: "This is the list of the administrators of the tribes of Israel:Reuben Eliezer son of ZichriSimeon Shephatiah son of MaacahLevi Hashabiah son of KemuelAaron ZadokJudah Elihu, one of King David's brothersIssachar Omri son of MichaelZebulun Ishmaiah son of ObadiahNaphtali Jeremoth son of AzrielEphraim Hoshea son of AzaziahWest Manasseh Joel son of PedaiahEast Manasseh Iddo son of ZechariahBenjamin Jaasiel son of AbnerDan Azarel son of JerohamThis was the list of the administrators of the tribes of Israel.",
         styling: sortStyleBlocks([
           { kind: 'v',   min:   0, max: 507, ref:
@@ -378,7 +386,7 @@ describe('Parser', () => {
               \\lim1
               \\v 14 of Zaccai - \\litl 760\\litl*`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'NEH', 7)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'NEH', 7)).to.deep.equal({
         text: "The list of the men of Israel:the descendants of Parosh - 2,172of Shephatiah - 372of Arah - 652of Pahath-Moab (through the line of Jeshua and Joab) - 2,818of Elam - 1,254of Zattu - 845of Zaccai - 760",
         styling: sortStyleBlocks([
           { kind: 'b',  min:   0, max:   0 },
@@ -436,7 +444,7 @@ describe('Parser', () => {
               \\p
               \\v 84 Paragraph should close table`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'NUM', 7)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'NUM', 7)).to.deep.equal({
         text: "They presented their offerings in the following order:Day Tribe Leader1st Judah Nahshon son of Amminadab2nd Issachar Nethanel son of Zuar3rd Zebulun Eliab son of Helon4th Reuben Elizur son of Shedeur5th Simeon Shelumiel son of ZurishaddaiSpanning textGoes HereParagraph should close table",
         styling: sortStyleBlocks([
           { kind: 'v',    min:   0, max: 260,
@@ -518,7 +526,7 @@ describe('Parser', () => {
               \\sd1
               \\p
               \\v 3 Goodbye`;
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'ABC', 2)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'ABC', 2)).to.deep.equal({
         text: "Medium HeaderHello worldSomewhere 1.2Descriptive TitleMore textGoodbye",
         styling: sortStyleBlocks([
           { kind: 's',    min:   0, max:  13, level: 2 },
@@ -555,7 +563,7 @@ describe('Parser', () => {
       text = `\\p
               \\v 1 Verse text\\f a \\ft Footnote content\\f* can surround the footnote
               \\v 2 Here is the next verse`;
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'ABC', 10)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'ABC', 10)).to.deep.equal({
         text: 'Verse text can surround the footnoteHere is the next verse',
         styling: [
           { kind: 'p', min:  0, max: 58 },
@@ -579,7 +587,7 @@ describe('Parser', () => {
       text = `\\p
               \\v 37 On the last and most important day of the festival Jesus stood up and said in a loud voice, “Whoever is thirsty should come to me, and
               \\v 38 whoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’”\\f + \\fr 7.38: \\ft Jesus' words in verses 37-38 may be translated: \\fqa “Whoever is thirsty should come to me and drink.\\fv 38\\fv* As the scripture says, ‘Streams of life-giving water will pour out from within anyone who believes in me.’”\\f*`;
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'XYZ', 99)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'XYZ', 99)).to.deep.equal({
         text: 'On the last and most important day of the festival Jesus stood up and said in a loud voice, “Whoever is thirsty should come to me, andwhoever believes in me should drink. As the scripture says, ‘Streams of life-giving water will pour out from his side.’”',
         styling: sortStyleBlocks([
           { kind: 'p', min:   0, max: 254 },
@@ -603,7 +611,7 @@ describe('Parser', () => {
               \\v 20 Adam\\fe + \\fr 3.20: \\fk Adam: \\ft This name in Hebrew means “all human beings.”\\fe* named his wife Eve,\\f + \\fr 3.20: \\fk Eve: \\ft This name sounds similar to the Hebrew word for “living,” which is rendered in this context as “human beings.”\\f* because she was the mother of all human beings.
               \\v 21 And the Lord God made clothes out of animal skins for Adam and his wife, and he clothed them.`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'GEN', 3)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'GEN', 3)).to.deep.equal({
         text: `Adam named his wife Eve, because she was the mother of all human beings.And the Lord God made clothes out of animal skins for Adam and his wife, and he clothed them.`,
         styling: [
           { kind: 'p', min:   0, max: 165 },
@@ -639,7 +647,7 @@ describe('Parser', () => {
               \\p
               \\v 24 They walked in the midst of the fire, praising God, and blessing the Lord.`;
 
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'DAG', 3)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'DAG', 3)).to.deep.equal({
         text: `These three men, Shadrach, Meshach, and Abednego, fell down bound into the middle of the burning fiery furnace.THE SONG OF THE THREE HOLY CHILDRENThey walked in the midst of the fire, praising God, and blessing the Lord.`,
         styling: [
           { kind: 'v', min:   0, max: 111, ref: { book: 'DAG', chapter: 3, verse: 23 } },
@@ -678,7 +686,7 @@ describe('Parser', () => {
 
       text = `\\v 27 He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind;\\x a \\xo 10:27  \\xt Deuteronomy 6:5\\x* and your neighbor as yourself."\\x - \\xot \\xo 10:27  \\xt Leviticus 19:18\\xot*\\x*
 `;
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'TEST', 5)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'TEST', 5)).to.deep.equal({
         text: 'He answered, "You shall love the Lord your God with all your heart, with all your soul, with all your strength, and with all your mind; and your neighbor as yourself."',
         styling: [
           { kind: 'v', min: 0, max: 167, ref: { book: 'TEST', chapter: 5, verse: 27 } },
@@ -709,7 +717,7 @@ describe('Parser', () => {
     it('Word level attributes', () => {
       text = `\\p
               \\v 1 Text \\nd LORD\\nd* here`;
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'TEST', 1)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'TEST', 1)).to.deep.equal({
         text: 'Text LORD here',
         styling: [
           { kind: 'p',  min: 0, max: 14 },
@@ -720,7 +728,7 @@ describe('Parser', () => {
 
       // ASV Genesis 1:1
       text = `\\v 1 \\w In|strong="H430"\\w* \\w the|strong="H853"\\w* \\w beginning|strong="H7225"\\w* \\w God|strong="H430"\\w* \\w created|strong="H1254"\\w* \\w the|strong="H853"\\w* \\w heavens|strong="H8064"\\w* \\w and|strong="H430"\\w* \\w the|strong="H853"\\w* \\w earth|strong="H776"\\w*.`;
-      expect(bodyParser(Array.from(lexer(text)), undefined, 'TEST', 1)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'TEST', 1)).to.deep.equal({
         text: 'In the beginning God created the heavens and the earth.',
         styling: sortStyleBlocks([
           { kind: 'v', min:  0, max: 55, ref: { book: 'TEST', chapter: 1, verse: 1 } },
