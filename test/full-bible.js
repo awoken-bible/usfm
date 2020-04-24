@@ -12,6 +12,7 @@ const expect           = chai.expect;
 
 testFullBible('https://ebible.org/Scriptures/engwebpb_usfm.zip', 'web');
 testFullBible('https://ebible.org/Scriptures/eng-asv_usfm.zip',  'asv');
+testFullBible('https://ebible.org/Scriptures/eng-kjv_usfm.zip',  'kjv');
 
 function testFullBible(download_url, version_id){
   let data_dir = __dirname + "/data";
