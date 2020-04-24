@@ -543,7 +543,7 @@ function bodyParser(markers : Marker[],
 			// ...a new character environment (which is not nested) is opened
 			if(marker.closing){
 				if(cur_open[marker.kind] == null){
-					pushError(marker, "Attempt to close character environment of kind ${marker.kind} but it is not currently open. Skipping marker");
+					pushError(marker, `Attempt to close character environment of kind '${marker.kind}' but it is not currently open. Skipping marker`);
 				} else {
 					closeCharacterMarkers(t_idx);
 				}
