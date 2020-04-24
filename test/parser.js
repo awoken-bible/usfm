@@ -728,10 +728,10 @@ describe('Parser', () => {
 
       // ASV Genesis 1:1
       text = `\\v 1 \\w In|strong="H430"\\w* \\w the|strong="H853"\\w* \\w beginning|strong="H7225"\\w* \\w God|strong="H430"\\w* \\w created|strong="H1254"\\w* \\w the|strong="H853"\\w* \\w heavens|strong="H8064"\\w* \\w and|strong="H430"\\w* \\w the|strong="H853"\\w* \\w earth|strong="H776"\\w*.`;
-      expect(bodyParser(Array.from(lexer(text)), throwError, 'TEST', 1)).to.deep.equal({
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'GEN', 1)).to.deep.equal({
         text: 'In the beginning God created the heavens and the earth.',
         styling: sortStyleBlocks([
-          { kind: 'v', min:  0, max: 55, ref: { book: 'TEST', chapter: 1, verse: 1 } },
+          { kind: 'v', min:  0, max: 55, ref: { book: 'GEN', chapter: 1, verse: 1 } },
           { kind: 'w', min:  0, max:  2, attributes: { strong: "H430"  } },
           { kind: 'w', min:  3, max:  6, attributes: { strong: "H853"  } },
           { kind: 'w', min:  7, max: 16, attributes: { strong: "H7225" } },
@@ -742,6 +742,53 @@ describe('Parser', () => {
           { kind: 'w', min: 41, max: 44, attributes: { strong: "H430"  } },
           { kind: 'w', min: 45, max: 48, attributes: { strong: "H853"  } },
           { kind: 'w', min: 49, max: 54, attributes: { strong: "H776"  } },
+        ]),
+      });
+
+
+
+      // ASV Genesis:1:11
+      // The nesting of character markers (add \and \w has previously broken the parser)
+      text = `\\v 11 \\w And|strong="H430"\\w* \\w God|strong="H430"\\w* \\w said|strong="H559"\\w*, \\w Let|strong="H1961"\\w* \\w the|strong="H559"\\w* \\w earth|strong="H776"\\w* put forth \\w grass|strong="H1877"\\w*, \\w herbs|strong="H6212"\\w* \\w yielding|strong="H2232"\\w* \\w seed|strong="H2233"\\w*, \\add \\+w and|strong="H430"\\+w*\\add* fruit-trees \\w bearing|strong="H6213"\\w* \\w fruit|strong="H6529"\\w* \\w after|strong="H5921"\\w* \\w their|strong="H5921"\\w* \\w kind|strong="H4327"\\w*, \\w wherein|strong="H834"\\w* \\w is|strong="H834"\\w* \\w the|strong="H559"\\w* \\w seed|strong="H2233"\\w* thereof, \\w upon|strong="H5921"\\w* \\w the|strong="H559"\\w* \\w earth|strong="H776"\\w*: \\w and|strong="H430"\\w* \\w it|strong="H5921"\\w* \\w was|strong="H1961"\\w* \\w so|strong="H3651"\\w*.`;
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'GEN', 1)).to.deep.equal({
+        text: 'And God said, Let the earth put forth grass, herbs yielding seed, and fruit-trees bearing fruit after their kind, wherein is the seed thereof, upon the earth: and it was so.',
+        styling: sortStyleBlocks([
+          { kind: 'v', min:  0, max: 173, ref: { book: 'GEN', chapter: 1, verse: 11 } },
+
+
+          { kind: 'w', min:   0, max:   3, attributes: { strong: "H430"  } }, // And
+          { kind: 'w', min:   4, max:   7, attributes: { strong: "H430"  } }, // God
+          { kind: 'w', min:   8, max:  12, attributes: { strong: "H559"  } }, // said
+          { kind: 'w', min:  14, max:  17, attributes: { strong: "H1961" } }, // Let
+          { kind: 'w', min:  18, max:  21, attributes: { strong: "H559"  } }, // the
+          { kind: 'w', min:  22, max:  27, attributes: { strong: "H776"  } }, // earth
+          // put forth (not in \w \w* block)
+          { kind: 'w', min:  38, max:  43, attributes: { strong: "H1877"  } }, //grass
+          { kind: 'w', min:  45, max:  50, attributes: { strong: "H6212"  } }, // herbs
+          { kind: 'w', min:  51, max:  59, attributes: { strong: "H2232"  } }, // yielding
+          { kind: 'w', min:  60, max:  64, attributes: { strong: "H2233"  } }, // seed
+
+          { kind: 'add', min:  66, max:  69 }, // and
+          { kind: 'w',   min:  66, max:  69, attributes: { strong: "H430"  } },
+
+          // fruit-trees (not in \w \w* block)
+          { kind: 'w',   min:  82, max:  89, attributes: { strong: "H6213"  } }, // bearing
+          { kind: 'w',   min:  90, max:  95, attributes: { strong: "H6529"  } }, // fruit
+          { kind: 'w',   min:  96, max: 101, attributes: { strong: "H5921"  } }, // after
+          { kind: 'w',   min: 102, max: 107, attributes: { strong: "H5921"  } }, // their
+          { kind: 'w',   min: 108, max: 112, attributes: { strong: "H4327"  } }, // kind
+          { kind: 'w',   min: 114, max: 121, attributes: { strong: "H834"   } }, // wherein
+          { kind: 'w',   min: 122, max: 124, attributes: { strong: "H834"   } }, // is
+          { kind: 'w',   min: 125, max: 128, attributes: { strong: "H559"   } }, // the
+          { kind: 'w',   min: 129, max: 133, attributes: { strong: "H2233"  } }, // seed
+          // thereof
+          { kind: 'w',   min: 143, max: 147, attributes: { strong: "H5921"  } }, // upon
+          { kind: 'w',   min: 148, max: 151, attributes: { strong: "H559"   } }, // the
+          { kind: 'w',   min: 152, max: 157, attributes: { strong: "H776"   } }, // earth
+          { kind: 'w',   min: 159, max: 162, attributes: { strong: "H430"   } }, // and
+          { kind: 'w',   min: 163, max: 165, attributes: { strong: "H5921"  } }, // it
+          { kind: 'w',   min: 166, max: 169, attributes: { strong: "H1961"  } }, // was
+          { kind: 'w',   min: 170, max: 172, attributes: { strong: "H3651"  } }, // so
         ]),
       });
 
