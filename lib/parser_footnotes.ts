@@ -30,7 +30,7 @@ export interface StyleBlockFootnoteNoData extends StyleBlockBase {
 		'fq' | 'fqa' | 'fk' | 'fl' | 'fw' | 'fp' | 'fv' | 'ft' | 'fdc' | 'fm' | 'bk' |
 
 		// generic text formatting
-		'nd' | 'ord' | 'pn' | 'png' | 'addpn' | 'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' | 'sc' | 'sup'
+		'nd' | 'ord' | 'pn' | 'png' | 'addpn' | 'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' | 'sc' | 'sup' | 'w' | 'vp'
 	);
 };
 
@@ -183,6 +183,8 @@ export function parseFootnote(markers: Marker[],
 			case 'no':
 			case 'sc':
 			case 'sup':
+			case 'w':
+			case 'vp':
 				if(marker.closing){
 					closeTagType(marker.kind, t_idx);
 				} else {
