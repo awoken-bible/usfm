@@ -9,10 +9,13 @@ const { parse  }       = require('../lib/parser.ts');
 
 const expect           = chai.expect;
 
-
 testFullBible('https://ebible.org/Scriptures/engwebpb_usfm.zip', 'web');
 testFullBible('https://ebible.org/Scriptures/eng-asv_usfm.zip',  'asv');
 testFullBible('https://ebible.org/Scriptures/eng-kjv_usfm.zip',  'kjv');
+testFullBible('https://ebible.org/Scriptures/engoebcw_usfm.zip', 'oeb');
+testFullBible('https://ebible.org/Scriptures/engULB_usfm.zip', 'ulb');
+testFullBible('https://ebible.org/Scriptures/engwmb_usfm.zip', 'wmb');
+testFullBible('https://ebible.org/Scriptures/eng-t4t_usfm.zip', 't4t');
 
 function testFullBible(download_url, version_id){
   let data_dir = __dirname + "/data";
