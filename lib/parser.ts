@@ -486,7 +486,10 @@ function bodyParser(markers : Marker[],
 		}
 
 		///////////////////////////////
-		// Before actually parsing tags, deal with "virtual" tags
+		// Before actually parsing tags, deal with "virtual" tags. These are tags
+		// we automatically insert (but do not actually exist in USFM spec) in order
+		// to contain a set of table rows or list elements. Useful when rendering as HTML
+		//
 		// Skip this logic if type is verse, since verse hierachies can
 		// span any other type of hierachy
 		if(marker.kind !== 'v'){
@@ -545,7 +548,7 @@ function bodyParser(markers : Marker[],
 				if(cur_open[marker.kind] == null){
 					pushError(marker, `Attempt to close character environment of kind '${marker.kind}' but it is not currently open. Skipping marker`);
 				} else {
-					closeCharacterMarkers(t_idx);
+					closeTagType(marker.kind, t_idx);
 				}
 			} else if(!marker.nested){
 				closeCharacterMarkers(t_idx);
