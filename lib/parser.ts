@@ -121,7 +121,7 @@ type StyleBlock = (StyleBlockNoData    |
 									 StyleBlockHeading
 									);
 
-interface ParseResultBody {
+export interface ParseResultBody {
 	/**
 	 * The full text of the parsed chapter without any styling, line breaks, etc
 	 */

@@ -1,8 +1,8 @@
 import { readFile } from 'fs';
 
-import { parse, ParseResultBook } from './parser';
+import { parse, ParseResultBook, ParseResultBody } from './parser';
 
-export { parse };
+export { parse, ParseResultBook, ParseResultBody };
 
 /**
  * Yields a promise which eventually resolves to the parsed content for
