@@ -9,58 +9,63 @@ const { parse  }       = require('../lib/parser.ts');
 
 const expect           = chai.expect;
 
-let data_dir = __dirname + "/data";
-let web_dir  = data_dir + "/web";
 
-if(!fs.existsSync(web_dir)){
-  fs.mkdirSync(web_dir);
-}
+testFullBible('https://ebible.org/Scriptures/engwebpb_usfm.zip', 'web');
+testFullBible('https://ebible.org/Scriptures/eng-asv_usfm.zip',  'asv');
 
-if(!fs.existsSync(web_dir + "/02-GENengwebpb.usfm")){
-  let web_url = "https://ebible.org/Scriptures/engwebpb_usfm.zip";
-  let path = web_dir + "/usfm.zip";
+function testFullBible(download_url, version_id){
+  let data_dir = __dirname + "/data";
+  let usfm_dir  = data_dir + "/" + version_id;
 
-  console.log("Downloading world english bible for full bible tests...");
-  execFileSync('wget', [web_url, '-O', path]);
+  if(!fs.existsSync(usfm_dir)){
+    fs.mkdirSync(usfm_dir);
+  }
 
-  console.log("Unzipping...");
-  execFileSync('unzip', [path, '-d', web_dir]);
-  execFileSync('rm',    [path]);
+  if(fs.readdirSync(usfm_dir).length < 10){
+    let path = usfm_dir + "/usfm.zip";
 
-  console.log("Download complete, proceeding with tests...");
-}
+    console.log(`Downloading ${version_id} for full bible tests...`);
+    execFileSync('wget', [download_url, '-O', path]);
 
-describe('full-bible-web', () => {
+    console.log("Unzipping...");
+    execFileSync('unzip', [path, '-d', usfm_dir]);
+    execFileSync('rm',    [path]);
 
-  describe('lexer', () => {
-    for(let f_path of fs.readdirSync(web_dir)){
-      if(!f_path.endsWith('.usfm')){ continue; }
-      let data = fs.readFileSync(web_dir + "/" + f_path).toString();
-      it(f_path, () => {
-        expect(() => Array.from(lexer(data))).to.not.throw();
-      });
-    }
+    console.log("Download complete, proceeding with tests...");
+  }
+
+  describe(`full-bible-${version_id}`, () => {
+
+    describe('lexer', () => {
+      for(let f_path of fs.readdirSync(usfm_dir)){
+        if(!f_path.endsWith('.usfm')){ continue; }
+        let data = fs.readFileSync(usfm_dir + "/" + f_path).toString();
+        it(f_path, () => {
+          expect(() => Array.from(lexer(data))).to.not.throw();
+        });
+      }
+    });
+
+    describe('parser', () => {
+      for(let f_path of fs.readdirSync(usfm_dir)){
+        if(!f_path.endsWith('.usfm')){ continue; }
+        let data = fs.readFileSync(usfm_dir + "/" + f_path).toString();
+        it(f_path, () => {
+          expect(() => parse(data)).to.not.throw();
+          let result = parse(data);
+          expect(result.errors).to.deep.equal([]);
+          expect(result.success).to.deep.equal(true);
+          for(let c of result.chapters){
+            expect(c.success).to.deep.equal(true);
+            expect(c.errors ).to.deep.equal([]);
+            expect(c.body.text   ).to.exist;
+            expect(c.body.text   ).to.not.be.empty;
+            expect(c.body.styling).to.exist;
+            expect(c.body.styling.length).to.exist;
+            expect(c.body.styling).to.not.be.empty;
+          }
+        });
+      }
+    });
   });
-
-  describe('parser', () => {
-    for(let f_path of fs.readdirSync(web_dir)){
-      if(!f_path.endsWith('.usfm')){ continue; }
-      let data = fs.readFileSync(web_dir + "/" + f_path).toString();
-      it(f_path, () => {
-        expect(() => parse(data)).to.not.throw();
-        let result = parse(data);
-        expect(result.errors).to.deep.equal([]);
-        expect(result.success).to.deep.equal(true);
-        for(let c of result.chapters){
-          expect(c.success).to.deep.equal(true);
-          expect(c.errors ).to.deep.equal([]);
-          expect(c.body.text   ).to.exist;
-          expect(c.body.text   ).to.not.be.empty;
-          expect(c.body.styling).to.exist;
-          expect(c.body.styling.length).to.exist;
-          expect(c.body.styling).to.not.be.empty;
-        }
-      });
-    }
-  });
-});
+}
