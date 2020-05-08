@@ -45,7 +45,7 @@ interface StyleBlockNoData extends StyleBlockBase{
 		// Word level attributes - https://ubsicap.github.io/usfm/attributes/index.html
 		'add' | 'bk' | 'dc' | 'k' | 'lit' | 'nd' | 'ord' | 'pn' | 'png' | 'addpn' |
 		'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' |
-		'sc' | 'sup' | 'ndx' | 'rb' | 'pro' | 'w' | 'wg' | 'wh' | 'wa' | 'fig' |
+		'sc' | 'sup' | 'ndx' | 'rb' | 'pro' | 'w' | 'wg' | 'wh' | 'wa' | 'fig' | 'vp' |
 		// titles, headings, labels: https://ubsicap.github.io/usfm/titles_headings/index.html
 		'sr' | 'r' | 'rq' | 'd' |	'sp' | 'sd' |
 	  // misc
@@ -296,12 +296,24 @@ export function parse(text: string) : ParseResultBook {
 			case 'c':
 				parsing_headers = false;
 				break;
-			case 'ip':
+			case 'imt':
 			case 'is':
-			case 'bk':
+			case 'ip':
+			case 'ipi':
+			case 'imi':
+			case 'ipq':
+			case 'imq':
+			case 'ipr':
+			case 'iq':
+			case 'ib':
 			case 'ili':
+			case 'iot':
+			case 'io':
+			case 'ior':
+			case 'bk':
 				// :TODO: extended study content introduction sections and paragraphs are
 				// skipped for now
+				// see: https://ubsicap.github.io/usfm/introductions/index.html
 				parsing_study_content = true;
 				break;
 			default:
@@ -486,7 +498,10 @@ function bodyParser(markers : Marker[],
 		}
 
 		///////////////////////////////
-		// Before actually parsing tags, deal with "virtual" tags
+		// Before actually parsing tags, deal with "virtual" tags. These are tags
+		// we automatically insert (but do not actually exist in USFM spec) in order
+		// to contain a set of table rows or list elements. Useful when rendering as HTML
+		//
 		// Skip this logic if type is verse, since verse hierachies can
 		// span any other type of hierachy
 		if(marker.kind !== 'v'){
@@ -543,9 +558,9 @@ function bodyParser(markers : Marker[],
 			// ...a new character environment (which is not nested) is opened
 			if(marker.closing){
 				if(cur_open[marker.kind] == null){
-					pushError(marker, "Attempt to close character environment of kind ${marker.kind} but it is not currently open. Skipping marker");
+					pushError(marker, `Attempt to close character environment of kind '${marker.kind}' but it is not currently open. Skipping marker`);
 				} else {
-					closeCharacterMarkers(t_idx);
+					closeTagType(marker.kind, t_idx);
 				}
 			} else if(!marker.nested){
 				closeCharacterMarkers(t_idx);
@@ -772,6 +787,7 @@ function bodyParser(markers : Marker[],
 			case 'wa':
 			case 'fig':
 			case 'rq':
+			case 'vp':
 				if(marker.closing){
 					break; // logic already handled by automatic character marker closing
 				} else {

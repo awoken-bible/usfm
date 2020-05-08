@@ -25,7 +25,13 @@ export interface StyleBlockFootnoteVerse extends StyleBlockBase {
 };
 
 export interface StyleBlockFootnoteNoData extends StyleBlockBase {
-	kind: 'fq' | 'fqa' | 'fk' | 'fl' | 'fw' | 'fp' | 'fv' | 'ft' | 'fdc' | 'fm' | 'bk';
+	kind: (
+		// footnote specific
+		'fq' | 'fqa' | 'fk' | 'fl' | 'fw' | 'fp' | 'fv' | 'ft' | 'fdc' | 'fm' | 'bk' |
+
+		// generic text formatting
+		'nd' | 'ord' | 'pn' | 'png' | 'addpn' | 'qt' | 'sig' | 'sls' | 'tl' | 'wj' | 'em' | 'bd' | 'it' | 'bdit' | 'no' | 'sc' | 'sup' | 'w' | 'vp'
+	);
 };
 
 export type StyleBlockFootnoteContent = ( StyleBlockFootnoteReference |
@@ -155,6 +161,40 @@ export function parseFootnote(markers: Marker[],
 					};
 				}
 				break;
+
+				////////////////////////////////////
+				// Generic text markers and formatting (deity name, bold, super, etc, etc)
+				// (https://ubsicap.github.io/usfm/characters/index.html#special-text)
+				// :TODO: -> code duplicated with main parser.ts
+			case 'nd':
+			case 'ord':
+			case 'pn':
+			case 'png':
+			case 'addpn': // :TODO: this deprecated by usfm 3.0, should be mapped to \add \+pn ..... \+pn* \add*
+			case 'qt':
+			case 'sig':
+			case 'sls':
+			case 'tl':
+			case 'wj':
+			case 'em':
+			case 'bd':
+			case 'it':
+			case 'bdit': // :TODO: map this to \bd \+it ... \+it* \bd*
+			case 'no':
+			case 'sc':
+			case 'sup':
+			case 'w':
+			case 'vp':
+				if(marker.closing){
+					closeTagType(marker.kind, t_idx);
+				} else {
+					cur_open[marker.kind] = {
+						min: t_idx, max: t_idx, kind: marker.kind,
+						attributes: marker.attributes,
+					};
+				}
+				break;
+
 
 
 				////////////////////////////////////
