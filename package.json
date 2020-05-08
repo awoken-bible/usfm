@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Bible USFM parser",
   "main": "dist/index.js",
-	"types": "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha test/ --reporter spec",
     "cover": "./node_modules/.bin/nyc ./node_modules/.bin/mocha && ./node_modules/.bin/nyc report --reporter lcov --reporter html",
@@ -25,7 +25,7 @@
     "typescript": "^3.6.2"
   },
   "dependencies": {
-    "awoken-bible-reference": "^1.6.1"
+    "awoken-bible-reference": "^1.10.1"
   },
   "directories": {
     "test": "test"
@@ -42,9 +42,9 @@
   "author": "Jamie Terry",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jnterry/awoken-bible-usfm/issues"
+    "url": "https://github.com/awoken-bible/usfm/issues"
   },
-  "homepage": "https://github.com/jnterry/awoken-bible-usfm#readme",
+  "homepage": "https://github.com/awoken-bible/usfm#readme",
   "files": [
     "dist/**/*"
   ],
