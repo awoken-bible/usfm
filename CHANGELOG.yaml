@@ -1,0 +1,7 @@
+- v0.1.0:
+  date: '2020-05-08'
+  name: 'First release'
+  features:
+    - Output format of chapter bodies is now (probably) stable
+    - Parser tested on the following English translations: ASV, WEB, KJV, OEB, WMB, T4T,
+    - Parser also works on Hebrew Old Testemant, Greek MT, Greek TR

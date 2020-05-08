@@ -6,11 +6,11 @@ This repo provides an NPM module with typescript typings for parsing USFM files 
 
 ## PRERELEASE
 
-> :warning: **THIS LIBRARY IS A PRERELEASE**:
+> :warning: **THIS LIBRARY IS A PRERELEASE**
 
-Please note that this library is currently in pre-release, and thus the version number is < 1.0.0. While this is true breaking API changes may occur between releases.
+Please note that this library is currently in pre-release, and thus the version number is < 1.0.0. While this is true breaking API changes may occur between releases without warning.
 
-The output format for the main chapter body content is (probably) stable, but book meta data/introduction material is currently simply skipped, and thus the meta data attached to the parse result for a book is likely to change.
+The output format for the main chapter body content is (probably) stable, but book meta data/introduction material is currently simply skipped, and thus the meta data attached to the parse result for a book is highly likely to change before a 1.0.0 release.
 
 The library has currently been tested on USFM files from https://ebible.org/Scriptures/ and can successfully cope with:
 
