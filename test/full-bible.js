@@ -9,13 +9,25 @@ const { parse  }       = require('../lib/parser.ts');
 
 const expect           = chai.expect;
 
+// English
 testFullBible('https://ebible.org/Scriptures/engwebpb_usfm.zip', 'web');
 testFullBible('https://ebible.org/Scriptures/eng-asv_usfm.zip',  'asv');
 testFullBible('https://ebible.org/Scriptures/eng-kjv_usfm.zip',  'kjv');
 testFullBible('https://ebible.org/Scriptures/engoebcw_usfm.zip', 'oeb');
-testFullBible('https://ebible.org/Scriptures/engULB_usfm.zip', 'ulb');
-testFullBible('https://ebible.org/Scriptures/engwmb_usfm.zip', 'wmb');
-testFullBible('https://ebible.org/Scriptures/eng-t4t_usfm.zip', 't4t');
+testFullBible('https://ebible.org/Scriptures/engwmb_usfm.zip',   'wmb');
+testFullBible('https://ebible.org/Scriptures/eng-t4t_usfm.zip',  't4t');
+
+// This uses \ms tag in book header content. Accoridng to default.sty, \ms can only occur within a chapter body, so this is malformed
+// testFullBible('https://ebible.org/Scriptures/engULB_usfm.zip', 'ulb');
+
+// Ancient text
+testFullBible('https://ebible.org/Scriptures/hbo_usfm.zip', 'hbo'); // Hebrew Masoretic Old Testemant
+testFullBible('https://ebible.org/Scriptures/grcmt_usfm.zip', 'grcmt'); // Greek Majority Text NT
+testFullBible('https://ebible.org/Scriptures/grctr_usfm.zip', 'grctr'); // Greek Textus Receptus w/ annotations
+
+// This has no content for Proverbs chapter 30 (the USFM literally has "\c 30" "\c 31" on subsequent
+// lines - this triggers our tests, so we don't run them
+//testFullBible('https://ebible.org/Scriptures/grcbrent_usfm.zip', 'grcbrent'); // Brenton Septuagint
 
 function testFullBible(download_url, version_id){
   let data_dir = __dirname + "/data";

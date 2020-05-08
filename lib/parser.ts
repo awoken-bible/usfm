@@ -296,12 +296,24 @@ export function parse(text: string) : ParseResultBook {
 			case 'c':
 				parsing_headers = false;
 				break;
-			case 'ip':
+			case 'imt':
 			case 'is':
-			case 'bk':
+			case 'ip':
+			case 'ipi':
+			case 'imi':
+			case 'ipq':
+			case 'imq':
+			case 'ipr':
+			case 'iq':
+			case 'ib':
 			case 'ili':
+			case 'iot':
+			case 'io':
+			case 'ior':
+			case 'bk':
 				// :TODO: extended study content introduction sections and paragraphs are
 				// skipped for now
+				// see: https://ubsicap.github.io/usfm/introductions/index.html
 				parsing_study_content = true;
 				break;
 			default:
