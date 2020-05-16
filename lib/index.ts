@@ -1,7 +1,7 @@
 import { readFile } from 'fs';
 
 import { parse, ParseResultBook, ParseResultBody } from './parser';
-import { sortStyleBlocks                         } from './parser';
+import { sortStyleBlocks                         } from './parser_utils';
 
 export { parse, ParseResultBook, ParseResultBody };
 export { sortStyleBlocks };
