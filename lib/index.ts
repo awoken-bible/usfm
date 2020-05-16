@@ -1,8 +1,11 @@
 import { readFile } from 'fs';
 
 import { parse, ParseResultBook, ParseResultBody } from './parser';
+import { sortStyleBlocks                         } from './parser';
 
 export { parse, ParseResultBook, ParseResultBody };
+export { sortStyleBlocks };
+
 
 /**
  * Yields a promise which eventually resolves to the parsed content for
