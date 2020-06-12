@@ -9,11 +9,12 @@
  * https://ubsicap.github.io/usfm/about/syntax.html#whitespace
  */
 export function isWhitespace(c : string){
-	return (c.charAt(0) == ' '  ||
-					c.charAt(0) == '\t' ||
-					c.charAt(0) == '\r' ||
-					c.charAt(0) == '\n'
-				 );
+	return (c.charAt(0) === ' '  ||
+	        c.charAt(0) === '\t' ||
+	        c.charAt(0) === '\r' ||
+	        c.charAt(0) === '\n' ||
+	        c.charAt(0) === '¶'
+	       );
 }
 
 export enum TokenType {
