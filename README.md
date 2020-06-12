@@ -4,6 +4,8 @@ _USFM (Unified Standard Format Markers) Bible Parser_
 
 This repo provides an NPM module with typescript typings for parsing USFM files containing biblical text, as per the [USFM documentation](https://ubsicap.github.io/usfm/)
 
+Developed for [awokenbible.com](https://awokenbible.com), but released under MIT licence.
+
 ## PRERELEASE
 
 > :warning: **THIS LIBRARY IS A PRERELEASE**
