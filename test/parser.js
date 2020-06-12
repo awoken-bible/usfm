@@ -171,6 +171,17 @@ describe('Parser', () => {
         ]),
       });
 
+      // KJV version contains '¶' characters after each \\p tag. We should ensure these are
+      // filtered out
+      text = `\\p
+              \\v 7 ¶ And the children of Israel were fruitful, and increased abundantly, and multiplied, and waxed exceeding mighty; and the land was filled with them.`;
+      expect(bodyParser(Array.from(lexer(text)), throwError, 'EXO', 1)).to.deep.equal({
+        text: 'And the children of Israel were fruitful, and increased abundantly, and multiplied, and waxed exceeding mighty; and the land was filled with them.',
+        styling: [
+          { kind: 'p', min: 0, max: 146 },
+          { kind: 'v', min: 0, max: 146, ref: { book: 'EXO', chapter: 1, verse: 7 } },
+        ],
+      });
     });
 
     it('Poetry', () => {
