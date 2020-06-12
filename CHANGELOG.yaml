@@ -1,3 +1,9 @@
+- v0.2.1:
+  date: '2020-06-12'
+  name: 'Pilcrow Filtering'
+  fixes:
+    - Filter out pilcrow symbols used in KJV to denote new paragraphs (in addition to standard \p tags)
+
 - v0.2.0:
   date: '2020-05-16'
   name: 'Style Block Sorting'

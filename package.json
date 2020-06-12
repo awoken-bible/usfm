@@ -1,6 +1,6 @@
 {
   "name": "awoken-bible-usfm",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Bible USFM parser",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
