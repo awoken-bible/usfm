@@ -16,7 +16,7 @@
     "@types/parsimmon": "^1.10.0",
     "chai": "^4.2.0",
     "coveralls": "^3.0.6",
-    "mocha": "^7.1.2",
+    "mocha": "^10.2.0",
     "nyc": "^14.1.1",
     "rewire": "^4.0.1",
     "source-map-support": "^0.5.13",
